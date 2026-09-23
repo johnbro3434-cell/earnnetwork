@@ -1056,6 +1056,21 @@ export function isStoreHydrated(): boolean {
   return isStoreHydratedFromMongo;
 }
 
+export async function saveStoreAsync(): Promise<boolean> {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), 'utf-8');
+  } catch (e) {
+    // In serverless / read-only filesystem environments, file write may fail gracefully
+  }
+
+  isStoreHydratedFromMongo = true;
+  return await syncStoreToMongo(store);
+}
+
 export function saveStore() {
   try {
     const dir = path.dirname(DATA_FILE);
@@ -1067,17 +1082,10 @@ export function saveStore() {
     // In serverless / read-only filesystem environments, file write may fail gracefully
   }
 
-  // Safety protection: Do not overwrite MongoDB Atlas with un-hydrated local data on cold deploy
-  if (isStoreHydratedFromMongo) {
-    syncStoreToMongo(store).catch((e) => {
-      console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
-    });
-  } else {
-    // If not hydrated yet, ensure hydration first before writing back
-    initMongoSync().then(() => {
-      syncStoreToMongo(store).catch(() => {});
-    }).catch(() => {});
-  }
+  isStoreHydratedFromMongo = true;
+  syncStoreToMongo(store).catch((e) => {
+    console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
+  });
 }
 
 /**

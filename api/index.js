@@ -153,58 +153,55 @@ async function loadStoreFromMongo() {
   }
   return null;
 }
-var syncTimeout = null;
 async function syncStoreToMongo(storeData) {
-  if (!isConnected) return false;
-  return new Promise((resolve) => {
-    if (syncTimeout) clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(async () => {
-      try {
-        await AppStoreModel.updateOne(
-          { key: "main_state" },
-          { $set: { data: storeData, updatedAt: /* @__PURE__ */ new Date() } },
-          { upsert: true }
-        );
-        if (Array.isArray(storeData.users) && storeData.users.length > 0) {
-          const bulkOps = storeData.users.slice(0, 500).map((u) => ({
-            updateOne: {
-              filter: { id: u.id },
-              update: { $set: u },
-              upsert: true
-            }
-          }));
-          UserModel.bulkWrite(bulkOps).catch(() => {
-          });
+  if (!isConnected) {
+    const ok = await connectMongoDB();
+    if (!ok) return false;
+  }
+  try {
+    await AppStoreModel.updateOne(
+      { key: "main_state" },
+      { $set: { data: storeData, updatedAt: /* @__PURE__ */ new Date() } },
+      { upsert: true }
+    );
+    if (Array.isArray(storeData.users) && storeData.users.length > 0) {
+      const bulkOps = storeData.users.slice(0, 500).map((u) => ({
+        updateOne: {
+          filter: { id: u.id },
+          update: { $set: u },
+          upsert: true
         }
-        if (Array.isArray(storeData.deposits) && storeData.deposits.length > 0) {
-          const depOps = storeData.deposits.slice(0, 500).map((d) => ({
-            updateOne: {
-              filter: { id: d.id },
-              update: { $set: d },
-              upsert: true
-            }
-          }));
-          DepositModel.bulkWrite(depOps).catch(() => {
-          });
+      }));
+      UserModel.bulkWrite(bulkOps).catch(() => {
+      });
+    }
+    if (Array.isArray(storeData.deposits) && storeData.deposits.length > 0) {
+      const depOps = storeData.deposits.slice(0, 500).map((d) => ({
+        updateOne: {
+          filter: { id: d.id },
+          update: { $set: d },
+          upsert: true
         }
-        if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
-          const wOps = storeData.withdrawals.slice(0, 500).map((w) => ({
-            updateOne: {
-              filter: { id: w.id },
-              update: { $set: w },
-              upsert: true
-            }
-          }));
-          WithdrawModel.bulkWrite(wOps).catch(() => {
-          });
+      }));
+      DepositModel.bulkWrite(depOps).catch(() => {
+      });
+    }
+    if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
+      const wOps = storeData.withdrawals.slice(0, 500).map((w) => ({
+        updateOne: {
+          filter: { id: w.id },
+          update: { $set: w },
+          upsert: true
         }
-        resolve(true);
-      } catch (err) {
-        console.warn("[Database] Background sync to MongoDB Atlas failed:", err?.message);
-        resolve(false);
-      }
-    }, 100);
-  });
+      }));
+      WithdrawModel.bulkWrite(wOps).catch(() => {
+      });
+    }
+    return true;
+  } catch (err) {
+    console.warn("[Database] Sync to MongoDB Atlas failed:", err?.message);
+    return false;
+  }
 }
 
 // server/db.ts
@@ -1154,6 +1151,18 @@ function getStore() {
 }
 var isStoreHydratedFromMongo = false;
 var mongoHydrationPromise = null;
+async function saveStoreAsync() {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
+  } catch (e) {
+  }
+  isStoreHydratedFromMongo = true;
+  return await syncStoreToMongo(store);
+}
 function saveStore() {
   try {
     const dir = path.dirname(DATA_FILE);
@@ -1163,17 +1172,10 @@ function saveStore() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
   } catch (e) {
   }
-  if (isStoreHydratedFromMongo) {
-    syncStoreToMongo(store).catch((e) => {
-      console.warn("[Database] Sync to MongoDB Atlas error:", e?.message);
-    });
-  } else {
-    initMongoSync().then(() => {
-      syncStoreToMongo(store).catch(() => {
-      });
-    }).catch(() => {
-    });
-  }
+  isStoreHydratedFromMongo = true;
+  syncStoreToMongo(store).catch((e) => {
+    console.warn("[Database] Sync to MongoDB Atlas error:", e?.message);
+  });
 }
 async function initMongoSync() {
   if (isStoreHydratedFromMongo) return;
@@ -2021,7 +2023,7 @@ function normalizeBdPhone(phone) {
   if (clean.startsWith("88")) clean = clean.substring(2);
   return clean;
 }
-function authenticateUser(req, res, next) {
+async function authenticateUser(req, res, next) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : req.cookies && req.cookies.token;
   if (!token) {
@@ -2029,9 +2031,15 @@ function authenticateUser(req, res, next) {
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const store2 = getStore();
+    let store2 = getStore();
     if (decoded.isAdmin) {
-      const adminRec = (store2.adminUsers || []).find((a) => a.id === decoded.id || a.phone === decoded.phone);
+      let adminRec = (store2.adminUsers || []).find((a) => a.id === decoded.id || a.phone === decoded.phone);
+      if (!adminRec) {
+        await initMongoSync().catch(() => {
+        });
+        store2 = getStore();
+        adminRec = (store2.adminUsers || []).find((a) => a.id === decoded.id || a.phone === decoded.phone);
+      }
       if (adminRec && adminRec.status === "disabled") {
         return res.status(403).json({ error: "Admin account is disabled" });
       }
@@ -2039,13 +2047,21 @@ function authenticateUser(req, res, next) {
       req.admin = decoded;
       return next();
     }
-    const dbUser = store2.users.find((u) => u.id === decoded.id);
+    let dbUser = store2.users.find((u) => u.id === decoded.id || decoded.phone && u.phone === decoded.phone);
+    if (!dbUser) {
+      await initMongoSync().catch(() => {
+      });
+      store2 = getStore();
+      dbUser = store2.users.find((u) => u.id === decoded.id || decoded.phone && u.phone === decoded.phone);
+    }
     if (dbUser) {
       if (dbUser.status === "suspended" || dbUser.isBanned || dbUser.isLockedOut) {
         return res.status(403).json({ error: "\u0986\u09AA\u09A8\u09BE\u09B0 \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F\u099F\u09BF \u09B8\u09BE\u09AE\u09AF\u09BC\u09BF\u0995\u09AD\u09BE\u09AC\u09C7 \u09B8\u09CD\u09A5\u0997\u09BF\u09A4 (Suspended/Banned) \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964" });
       }
+      req.user = { ...decoded, id: dbUser.id, phone: dbUser.phone, role: dbUser.role };
+    } else {
+      req.user = decoded;
     }
-    req.user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ error: "Session expired or invalid token" });
@@ -2105,7 +2121,7 @@ router.get(["/auth/validate-referral", "/api/auth/validate-referral"], (req, res
     sponsorRole: uplineUser.role || "Member"
   });
 });
-router.post("/auth/register", authRateLimiter, (req, res) => {
+router.post("/auth/register", authRateLimiter, async (req, res) => {
   const { phone, password, referralCode, deviceFingerprint } = req.body;
   if (!phone || !password) {
     return res.status(400).json({ error: "\u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u098F\u09AC\u0982 \u09AA\u09BE\u09B8\u0993\u09AF\u09BC\u09BE\u09B0\u09CD\u09A1 \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964" });
@@ -2219,7 +2235,7 @@ router.post("/auth/register", authRateLimiter, (req, res) => {
   });
   store2.users.push(newUser);
   store2.wallets.push(newWallet);
-  saveStore();
+  await saveStoreAsync();
   emitAdminDashboardUpdated();
   const token = jwt.sign(
     { id: newUser.id, phone: newUser.phone, isAdmin: false, role: newUser.role },
@@ -2230,17 +2246,25 @@ router.post("/auth/register", authRateLimiter, (req, res) => {
   const { passwordHash: _, ...safeUser } = newUser;
   return res.json({ token, user: safeUser, wallet: newWallet });
 });
-router.post("/auth/login", authRateLimiter, (req, res) => {
+router.post("/auth/login", authRateLimiter, async (req, res) => {
   const { phone, password, deviceFingerprint } = req.body;
   if (!phone || !password) {
     return res.status(400).json({ error: "\u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u098F\u09AC\u0982 \u09AA\u09BE\u09B8\u0993\u09AF\u09BC\u09BE\u09B0\u09CD\u09A1 \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964" });
   }
   const normalizedPhone = normalizeBdPhone(phone);
-  const store2 = getStore();
+  let store2 = getStore();
   const trimmedPhone = phone.trim().toLowerCase();
-  const admin = store2.adminUsers.find(
+  let admin = store2.adminUsers.find(
     (a) => a.phone === normalizedPhone || a.phone === phone.trim() || a.username && a.username.toLowerCase() === trimmedPhone
   );
+  if (!admin) {
+    await initMongoSync().catch(() => {
+    });
+    store2 = getStore();
+    admin = store2.adminUsers.find(
+      (a) => a.phone === normalizedPhone || a.phone === phone.trim() || a.username && a.username.toLowerCase() === trimmedPhone
+    );
+  }
   if (admin && bcrypt2.compareSync(password, admin.passwordHash)) {
     const token2 = jwt.sign(
       { id: admin.id, phone: admin.phone, isAdmin: true, role: admin.role, name: admin.name },
@@ -2254,7 +2278,13 @@ router.post("/auth/login", authRateLimiter, (req, res) => {
       admin: { id: admin.id, phone: admin.phone, name: admin.name, role: admin.role, permissions: admin.permissions }
     });
   }
-  const user = store2.users.find((u) => u.phone === normalizedPhone);
+  let user = store2.users.find((u) => u.phone === normalizedPhone);
+  if (!user) {
+    await initMongoSync().catch(() => {
+    });
+    store2 = getStore();
+    user = store2.users.find((u) => u.phone === normalizedPhone);
+  }
   if (!user || !user.passwordHash || !bcrypt2.compareSync(password, user.passwordHash)) {
     return res.status(401).json({ error: "\u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u0985\u09A5\u09AC\u09BE \u09AA\u09BE\u09B8\u0993\u09AF\u09BC\u09BE\u09B0\u09CD\u09A1 \u09B8\u09A0\u09BF\u0995 \u09A8\u09AF\u09BC\u0964" });
   }
@@ -2266,7 +2296,7 @@ router.post("/auth/login", authRateLimiter, (req, res) => {
   if (deviceFingerprint) {
     user.deviceFingerprint = deviceFingerprint;
   }
-  saveStore();
+  await saveStoreAsync();
   const wallet = store2.wallets.find((w) => w.userId === user.id);
   const token = jwt.sign(
     { id: user.id, phone: user.phone, isAdmin: false, role: user.role },
@@ -2373,10 +2403,16 @@ router.post("/wallet/withdraw-setup", authenticateUser, (req, res) => {
     withdrawNumber: user.withdrawNumber
   });
 });
-router.get("/tasks/today", authenticateUser, (req, res) => {
+router.get("/tasks/today", authenticateUser, async (req, res) => {
   const tokenUser = req.user;
-  const store2 = getStore();
-  const user = store2.users.find((u) => u.id === tokenUser.id);
+  let store2 = getStore();
+  let user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
+  if (!user) {
+    await initMongoSync().catch(() => {
+    });
+    store2 = getStore();
+    user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
+  }
   if (!user) return res.status(404).json({ error: "User not found" });
   const todayStr = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   const dayOfWeek = (/* @__PURE__ */ new Date()).getDay();
@@ -2427,7 +2463,7 @@ router.get("/tasks/today", authenticateUser, (req, res) => {
     }))
   });
 });
-router.post("/tasks/complete", financialRateLimiter, authenticateUser, (req, res) => {
+router.post("/tasks/complete", financialRateLimiter, authenticateUser, async (req, res) => {
   const tokenUser = req.user;
   const { taskId, watchDurationSeconds } = req.body;
   if (!watchDurationSeconds || watchDurationSeconds < 9.5) {
@@ -2438,9 +2474,18 @@ router.post("/tasks/complete", financialRateLimiter, authenticateUser, (req, res
   }
   activeTaskLocks.add(tokenUser.id);
   try {
-    const store2 = getStore();
-    const user = store2.users.find((u) => u.id === tokenUser.id);
-    const wallet = store2.wallets.find((w) => w.userId === tokenUser.id);
+    let store2 = getStore();
+    let user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
+    const targetUserId = user ? user.id : "";
+    let wallet = targetUserId ? store2.wallets.find((w) => w.userId === targetUserId) : null;
+    if (!user || !wallet) {
+      await initMongoSync().catch(() => {
+      });
+      store2 = getStore();
+      user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
+      const recheckedUserId = user ? user.id : "";
+      wallet = recheckedUserId ? store2.wallets.find((w) => w.userId === recheckedUserId) : null;
+    }
     if (!user || !wallet) {
       activeTaskLocks.delete(tokenUser.id);
       return res.status(404).json({ error: "\u0987\u0989\u099C\u09BE\u09B0 \u09AC\u09BE \u0993\u09AF\u09BC\u09BE\u09B2\u09C7\u099F \u09AA\u09BE\u0993\u09AF\u09BC\u09BE \u09AF\u09BE\u09AF\u09BC\u09A8\u09BF\u0964" });
@@ -2534,7 +2579,7 @@ router.post("/tasks/complete", financialRateLimiter, authenticateUser, (req, res
         }
       }
     }
-    saveStore();
+    await saveStoreAsync();
     emitWalletUpdated(user.id, wallet);
     emitTaskCompleted(user.id, {
       reward,

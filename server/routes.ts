@@ -5,6 +5,8 @@ import { v2 as cloudinary } from 'cloudinary';
 import {
   getStore,
   saveStore,
+  saveStoreAsync,
+  initMongoSync,
   recordWalletLedgerEntry,
   recordFinancialAuditLog,
   isTrxUnique,
@@ -88,7 +90,7 @@ function normalizeBdPhone(phone: string): string {
 }
 
 // Authentication Middleware with Live DB Status & Ban Enforcement
-export function authenticateUser(req: Request, res: Response, next: () => void) {
+export async function authenticateUser(req: Request, res: Response, next: () => void) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : (req.cookies && req.cookies.token);
 
@@ -98,10 +100,15 @@ export function authenticateUser(req: Request, res: Response, next: () => void) 
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; phone: string; isAdmin?: boolean; role?: string; name?: string };
-    const store = getStore();
+    let store = getStore();
 
     if (decoded.isAdmin) {
-      const adminRec = (store.adminUsers || []).find(a => a.id === decoded.id || a.phone === decoded.phone);
+      let adminRec = (store.adminUsers || []).find(a => a.id === decoded.id || a.phone === decoded.phone);
+      if (!adminRec) {
+        await initMongoSync().catch(() => {});
+        store = getStore();
+        adminRec = (store.adminUsers || []).find(a => a.id === decoded.id || a.phone === decoded.phone);
+      }
       if (adminRec && adminRec.status === 'disabled') {
         return res.status(403).json({ error: 'Admin account is disabled' });
       }
@@ -110,14 +117,22 @@ export function authenticateUser(req: Request, res: Response, next: () => void) 
       return next();
     }
 
-    const dbUser = store.users.find(u => u.id === decoded.id);
+    let dbUser = store.users.find(u => u.id === decoded.id || (decoded.phone && u.phone === decoded.phone));
+    if (!dbUser) {
+      await initMongoSync().catch(() => {});
+      store = getStore();
+      dbUser = store.users.find(u => u.id === decoded.id || (decoded.phone && u.phone === decoded.phone));
+    }
+
     if (dbUser) {
       if (dbUser.status === 'suspended' || dbUser.isBanned || (dbUser as any).isLockedOut) {
         return res.status(403).json({ error: 'আপনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত (Suspended/Banned) করা হয়েছে।' });
       }
+      (req as any).user = { ...decoded, id: dbUser.id, phone: dbUser.phone, role: dbUser.role };
+    } else {
+      (req as any).user = decoded;
     }
 
-    (req as any).user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Session expired or invalid token' });
@@ -197,7 +212,7 @@ router.get(['/auth/validate-referral', '/api/auth/validate-referral'], (req: Req
 });
 
 // Register
-router.post('/auth/register', authRateLimiter, (req: Request, res: Response) => {
+router.post('/auth/register', authRateLimiter, async (req: Request, res: Response) => {
   const { phone, password, referralCode, deviceFingerprint } = req.body;
 
   if (!phone || !password) {
@@ -332,7 +347,7 @@ router.post('/auth/register', authRateLimiter, (req: Request, res: Response) => 
 
   store.users.push(newUser);
   store.wallets.push(newWallet);
-  saveStore();
+  await saveStoreAsync();
 
   emitAdminDashboardUpdated();
 
@@ -349,7 +364,7 @@ router.post('/auth/register', authRateLimiter, (req: Request, res: Response) => 
 });
 
 // Login
-router.post('/auth/login', authRateLimiter, (req: Request, res: Response) => {
+router.post('/auth/login', authRateLimiter, async (req: Request, res: Response) => {
   const { phone, password, deviceFingerprint } = req.body;
 
   if (!phone || !password) {
@@ -357,15 +372,26 @@ router.post('/auth/login', authRateLimiter, (req: Request, res: Response) => {
   }
 
   const normalizedPhone = normalizeBdPhone(phone);
-  const store = getStore();
+  let store = getStore();
 
   // Check admin users first (by normalized phone, raw phone, or username)
   const trimmedPhone = phone.trim().toLowerCase();
-  const admin = store.adminUsers.find(
+  let admin = store.adminUsers.find(
     a => a.phone === normalizedPhone ||
          a.phone === phone.trim() ||
          (a.username && a.username.toLowerCase() === trimmedPhone)
   );
+
+  if (!admin) {
+    await initMongoSync().catch(() => {});
+    store = getStore();
+    admin = store.adminUsers.find(
+      a => a.phone === normalizedPhone ||
+           a.phone === phone.trim() ||
+           (a.username && a.username.toLowerCase() === trimmedPhone)
+    );
+  }
+
   if (admin && bcrypt.compareSync(password, admin.passwordHash)) {
     const token = jwt.sign(
       { id: admin.id, phone: admin.phone, isAdmin: true, role: admin.role, name: admin.name },
@@ -381,7 +407,13 @@ router.post('/auth/login', authRateLimiter, (req: Request, res: Response) => {
   }
 
   // Check regular users
-  const user = store.users.find(u => u.phone === normalizedPhone);
+  let user = store.users.find(u => u.phone === normalizedPhone);
+  if (!user) {
+    await initMongoSync().catch(() => {});
+    store = getStore();
+    user = store.users.find(u => u.phone === normalizedPhone);
+  }
+
   if (!user || !user.passwordHash || !bcrypt.compareSync(password, user.passwordHash)) {
     return res.status(401).json({ error: 'মোবাইল নম্বর অথবা পাসওয়ার্ড সঠিক নয়।' });
   }
@@ -396,7 +428,7 @@ router.post('/auth/login', authRateLimiter, (req: Request, res: Response) => {
   if (deviceFingerprint) {
     user.deviceFingerprint = deviceFingerprint;
   }
-  saveStore();
+  await saveStoreAsync();
 
   const wallet = store.wallets.find(w => w.userId === user.id);
 
@@ -541,10 +573,15 @@ router.post('/wallet/withdraw-setup', authenticateUser, (req: Request, res: Resp
 // ==========================================
 // VIDEO TASK SYSTEM (LOCKED: 10s Countdown)
 // ==========================================
-router.get('/tasks/today', authenticateUser, (req: Request, res: Response) => {
+router.get('/tasks/today', authenticateUser, async (req: Request, res: Response) => {
   const tokenUser = (req as any).user;
-  const store = getStore();
-  const user = store.users.find(u => u.id === tokenUser.id);
+  let store = getStore();
+  let user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
+  if (!user) {
+    await initMongoSync().catch(() => {});
+    store = getStore();
+    user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
+  }
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -612,7 +649,7 @@ router.get('/tasks/today', authenticateUser, (req: Request, res: Response) => {
 });
 
 // Complete Video Task (Reward After Countdown)
-router.post('/tasks/complete', financialRateLimiter, authenticateUser, (req: Request, res: Response) => {
+router.post('/tasks/complete', financialRateLimiter, authenticateUser, async (req: Request, res: Response) => {
   const tokenUser = (req as any).user;
   const { taskId, watchDurationSeconds } = req.body;
 
@@ -629,9 +666,18 @@ router.post('/tasks/complete', financialRateLimiter, authenticateUser, (req: Req
   activeTaskLocks.add(tokenUser.id);
 
   try {
-    const store = getStore();
-    const user = store.users.find(u => u.id === tokenUser.id);
-    const wallet = store.wallets.find(w => w.userId === tokenUser.id);
+    let store = getStore();
+    let user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
+    const targetUserId = user ? user.id : '';
+    let wallet = targetUserId ? store.wallets.find(w => w.userId === targetUserId) : null;
+    if (!user || !wallet) {
+      await initMongoSync().catch(() => {});
+      store = getStore();
+      user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
+      const recheckedUserId = user ? user.id : '';
+      wallet = recheckedUserId ? store.wallets.find(w => w.userId === recheckedUserId) : null;
+    }
+
     if (!user || !wallet) {
       activeTaskLocks.delete(tokenUser.id);
       return res.status(404).json({ error: 'ইউজার বা ওয়ালেট পাওয়া যায়নি।' });
@@ -745,7 +791,7 @@ router.post('/tasks/complete', financialRateLimiter, authenticateUser, (req: Req
       }
     }
 
-    saveStore();
+    await saveStoreAsync();
 
     // Socket.IO real-time triggers
     emitWalletUpdated(user.id, wallet);

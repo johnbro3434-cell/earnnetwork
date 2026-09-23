@@ -60,7 +60,7 @@ export function VideoTasksView() {
     setAutoPlayNext(!autoPlayNext);
   };
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (isRetry = false) => {
     try {
       setLoading(true);
       const res = await apiRequest('/api/tasks/today');
@@ -69,6 +69,13 @@ export function VideoTasksView() {
         setActiveTask(res.tasks[0]);
       }
     } catch (err: any) {
+      if (!isRetry) {
+        // Cold start auto-retry
+        setTimeout(() => {
+          fetchTasks(true);
+        }, 600);
+        return;
+      }
       showToast('error', 'Task Error', err.message || 'Could not fetch tasks');
     } finally {
       setLoading(false);

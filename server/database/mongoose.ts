@@ -181,64 +181,59 @@ export async function loadStoreFromMongo(): Promise<any | null> {
   return null;
 }
 
-let syncTimeout: any = null;
-
 /**
- * Debounced and reliable background sync of complete platform store to MongoDB Atlas
+ * Immediate, reliable sync of complete platform store to MongoDB Atlas (atomic for serverless)
  */
 export async function syncStoreToMongo(storeData: any): Promise<boolean> {
-  if (!isConnected) return false;
+  if (!isConnected) {
+    const ok = await connectMongoDB();
+    if (!ok) return false;
+  }
 
-  // Debounce rapid writes within 100ms
-  return new Promise((resolve) => {
-    if (syncTimeout) clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(async () => {
-      try {
-        await AppStoreModel.updateOne(
-          { key: 'main_state' },
-          { $set: { data: storeData, updatedAt: new Date() } },
-          { upsert: true }
-        );
+  try {
+    await AppStoreModel.updateOne(
+      { key: 'main_state' },
+      { $set: { data: storeData, updatedAt: new Date() } },
+      { upsert: true }
+    );
 
-        // Also sync key collections in background for direct Atlas queryability
-        if (Array.isArray(storeData.users) && storeData.users.length > 0) {
-          const bulkOps = storeData.users.slice(0, 500).map((u: any) => ({
-            updateOne: {
-              filter: { id: u.id },
-              update: { $set: u },
-              upsert: true,
-            },
-          }));
-          UserModel.bulkWrite(bulkOps).catch(() => {});
-        }
+    // Also sync key collections in background for direct Atlas queryability
+    if (Array.isArray(storeData.users) && storeData.users.length > 0) {
+      const bulkOps = storeData.users.slice(0, 500).map((u: any) => ({
+        updateOne: {
+          filter: { id: u.id },
+          update: { $set: u },
+          upsert: true,
+        },
+      }));
+      UserModel.bulkWrite(bulkOps).catch(() => {});
+    }
 
-        if (Array.isArray(storeData.deposits) && storeData.deposits.length > 0) {
-          const depOps = storeData.deposits.slice(0, 500).map((d: any) => ({
-            updateOne: {
-              filter: { id: d.id },
-              update: { $set: d },
-              upsert: true,
-            },
-          }));
-          DepositModel.bulkWrite(depOps).catch(() => {});
-        }
+    if (Array.isArray(storeData.deposits) && storeData.deposits.length > 0) {
+      const depOps = storeData.deposits.slice(0, 500).map((d: any) => ({
+        updateOne: {
+          filter: { id: d.id },
+          update: { $set: d },
+          upsert: true,
+        },
+      }));
+      DepositModel.bulkWrite(depOps).catch(() => {});
+    }
 
-        if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
-          const wOps = storeData.withdrawals.slice(0, 500).map((w: any) => ({
-            updateOne: {
-              filter: { id: w.id },
-              update: { $set: w },
-              upsert: true,
-            },
-          }));
-          WithdrawModel.bulkWrite(wOps).catch(() => {});
-        }
+    if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
+      const wOps = storeData.withdrawals.slice(0, 500).map((w: any) => ({
+        updateOne: {
+          filter: { id: w.id },
+          update: { $set: w },
+          upsert: true,
+        },
+      }));
+      WithdrawModel.bulkWrite(wOps).catch(() => {});
+    }
 
-        resolve(true);
-      } catch (err: any) {
-        console.warn('[Database] Background sync to MongoDB Atlas failed:', err?.message);
-        resolve(false);
-      }
-    }, 100);
-  });
+    return true;
+  } catch (err: any) {
+    console.warn('[Database] Sync to MongoDB Atlas failed:', err?.message);
+    return false;
+  }
 }

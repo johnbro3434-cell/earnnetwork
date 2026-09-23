@@ -17,28 +17,86 @@ import { PromotionView } from './components/promotion/PromotionView';
 import { MyAccountView } from './components/account/MyAccountView';
 import { AdminPanel } from './components/admin/AdminPanel';
 
+function parseRoute(pathname: string): { view: string; isAdmin: boolean } {
+  const clean = pathname.replace(/\/+$/, '').toLowerCase() || '/';
+  if (clean === '/admin' || clean === '/admin-secret') return { view: 'admin', isAdmin: true };
+  if (clean === '/login') return { view: 'login', isAdmin: false };
+  if (clean === '/register') return { view: 'register', isAdmin: false };
+  if (clean === '/tasks') return { view: 'tasks', isAdmin: false };
+  if (clean === '/wallet') return { view: 'wallet', isAdmin: false };
+  if (clean === '/withdraw') return { view: 'withdraw', isAdmin: false };
+  if (clean === '/packages') return { view: 'packages', isAdmin: false };
+  if (clean === '/referral') return { view: 'referral', isAdmin: false };
+  if (clean === '/salary') return { view: 'salary', isAdmin: false };
+  if (clean === '/promotion') return { view: 'promotion', isAdmin: false };
+  if (clean === '/account') return { view: 'account', isAdmin: false };
+  if (clean === '/notifications') return { view: 'notifications', isAdmin: false };
+  if (clean === '/dashboard') return { view: 'dashboard', isAdmin: false };
+  return { view: 'home', isAdmin: false };
+}
+
+function getPathForView(view: string, isAdmMode: boolean, isLoggedIn: boolean): string {
+  if (isAdmMode) return '/admin';
+  if (!isLoggedIn) {
+    if (view === 'login') return '/login';
+    if (view === 'register') return '/register';
+    return '/';
+  }
+  if (view === 'home' || view === 'dashboard') return '/dashboard';
+  return `/${view}`;
+}
+
 function AppContent() {
   const { user, admin, isAdmin, isLoading } = useAuth();
-  const [currentView, setCurrentView] = useState<string>('home');
-  const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
+  const initialRoute = parseRoute(window.location.pathname);
+  const [currentView, setCurrentView] = useState<string>(initialRoute.view);
+  const [isAdminMode, setIsAdminMode] = useState<boolean>(initialRoute.isAdmin);
 
-  // If visiting secret hash/route redirect directly to main login page
-  useEffect(() => {
-    const checkRoute = () => {
-      if (window.location.hash === '#admin-secret' || window.location.pathname === '/admin-secret') {
-        setCurrentView('login');
-        if (window.location.hash) {
-          window.location.hash = '';
-        }
+  // Sync state and browser URL address bar seamlessly
+  const navigateTo = (targetView: string, explicitAdminMode?: boolean) => {
+    let nextView = targetView;
+    let nextAdminMode = explicitAdminMode !== undefined ? explicitAdminMode : isAdminMode;
+
+    if (targetView === 'admin') {
+      nextAdminMode = true;
+      nextView = 'dashboard';
+    } else if (explicitAdminMode === false || targetView === 'dashboard' || targetView === 'home') {
+      if (explicitAdminMode === undefined && !isAdmin) {
+        nextAdminMode = false;
       }
+    }
+
+    setIsAdminMode(nextAdminMode);
+    setCurrentView(nextView);
+
+    const isLoggedIn = Boolean(user || admin);
+    const targetPath = getPathForView(nextView, nextAdminMode, isLoggedIn);
+
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ view: nextView, isAdminMode: nextAdminMode }, '', targetPath);
+    }
+  };
+
+  // Sync with browser Back and Forward button navigation (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const parsed = parseRoute(window.location.pathname);
+      setIsAdminMode(parsed.isAdmin && Boolean(admin || isAdmin));
+      setCurrentView(parsed.view);
     };
-    checkRoute();
-    window.addEventListener('hashchange', checkRoute);
-    window.addEventListener('popstate', checkRoute);
-    return () => {
-      window.removeEventListener('hashchange', checkRoute);
-      window.removeEventListener('popstate', checkRoute);
-    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [admin, isAdmin]);
+
+  // Handle secret admin hash or route
+  useEffect(() => {
+    if (window.location.hash === '#admin-secret' || window.location.pathname === '/admin-secret') {
+      navigateTo('login');
+      if (window.location.hash) {
+        window.location.hash = '';
+      }
+    }
   }, []);
 
   // Check URL params for referral code or initial view
@@ -46,18 +104,44 @@ function AppContent() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref && !user && !admin) {
-      setCurrentView('register');
+      navigateTo('register');
     }
   }, [user, admin]);
 
-  // If user is admin and logs in, set admin mode default
+  // When auth state settles, ensure URL matches login state
   useEffect(() => {
-    if (isAdmin && admin) {
-      setIsAdminMode(true);
+    if (isLoading) return;
+
+    const isLoggedIn = Boolean(user || admin);
+    const parsed = parseRoute(window.location.pathname);
+
+    if (isLoggedIn) {
+      if (isAdmin && admin) {
+        if (parsed.view === 'home' || parsed.view === 'login' || parsed.view === 'register') {
+          navigateTo('dashboard', true);
+        } else {
+          setIsAdminMode(parsed.isAdmin);
+        }
+      } else {
+        setIsAdminMode(false);
+        if (parsed.view === 'home' || parsed.view === 'login' || parsed.view === 'register') {
+          navigateTo('dashboard', false);
+        } else {
+          setCurrentView(parsed.view);
+          const expectedPath = getPathForView(parsed.view, false, true);
+          if (window.location.pathname !== expectedPath) {
+            window.history.replaceState(null, '', expectedPath);
+          }
+        }
+      }
     } else {
       setIsAdminMode(false);
+      const protectedViews = ['dashboard', 'tasks', 'wallet', 'withdraw', 'packages', 'referral', 'salary', 'promotion', 'account', 'notifications', 'admin'];
+      if (protectedViews.includes(parsed.view)) {
+        navigateTo('login');
+      }
     }
-  }, [isAdmin, admin]);
+  }, [isLoading, user, admin, isAdmin]);
 
   if (isLoading) {
     return (
@@ -89,34 +173,32 @@ function AppContent() {
         <div className="relative z-10 flex flex-col min-h-screen">
           <Navbar
             currentView={currentView}
-            setCurrentView={setCurrentView}
+            setCurrentView={navigateTo}
             isAdminMode={false}
-            setIsAdminMode={() => {}}
+            setIsAdminMode={(adm) => navigateTo('dashboard', adm)}
           />
 
           <main className="flex-1 pb-16 md:pb-8">
             {currentView === 'login' ? (
               <LoginPage
-                onNavigate={setCurrentView}
+                onNavigate={navigateTo}
                 onLoginSuccess={(isAdm) => {
                   if (isAdm) {
-                    setIsAdminMode(true);
-                    setCurrentView('home');
+                    navigateTo('dashboard', true);
                   } else {
-                    setIsAdminMode(false);
-                    setCurrentView('home');
+                    navigateTo('dashboard', false);
                   }
                 }}
               />
             ) : currentView === 'register' ? (
               <RegisterPage
-                onNavigate={setCurrentView}
+                onNavigate={navigateTo}
                 onRegisterSuccess={() => {
-                  setCurrentView('home');
+                  navigateTo('dashboard', false);
                 }}
               />
             ) : (
-              <LandingPage onNavigate={setCurrentView} />
+              <LandingPage onNavigate={navigateTo} />
             )}
           </main>
 
@@ -146,9 +228,9 @@ function AppContent() {
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar
           currentView={currentView}
-          setCurrentView={setCurrentView}
+          setCurrentView={navigateTo}
           isAdminMode={isAdminMode}
-          setIsAdminMode={setIsAdminMode}
+          setIsAdminMode={(adm) => navigateTo('dashboard', adm)}
         />
 
         <main className={`flex-1 ${!isAdminMode ? 'pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-8' : 'pb-8'}`}>
@@ -157,15 +239,15 @@ function AppContent() {
           ) : (
             <>
               {currentView === 'tasks' && <VideoTasksView />}
-              {currentView === 'wallet' && <WalletView initialTab="overview" onNavigate={setCurrentView} />}
-              {currentView === 'withdraw' && <WalletView initialTab="withdraw" onNavigate={setCurrentView} />}
-              {currentView === 'packages' && <PackagesView onNavigate={setCurrentView} />}
+              {currentView === 'wallet' && <WalletView initialTab="overview" onNavigate={navigateTo} />}
+              {currentView === 'withdraw' && <WalletView initialTab="withdraw" onNavigate={navigateTo} />}
+              {currentView === 'packages' && <PackagesView onNavigate={navigateTo} />}
               {currentView === 'referral' && <ReferralView />}
               {currentView === 'salary' && <SalaryView />}
               {currentView === 'promotion' && <PromotionView />}
               {currentView === 'account' && <MyAccountView />}
               {currentView === 'notifications' && <MyAccountView />}
-              {['home', 'dashboard'].includes(currentView) && <UserDashboard onNavigate={setCurrentView} />}
+              {['home', 'dashboard'].includes(currentView) && <UserDashboard onNavigate={navigateTo} />}
             </>
           )}
         </main>
@@ -175,7 +257,7 @@ function AppContent() {
 
         {/* Mobile Bottom Navigation (Only for regular member view) */}
         {!isAdminMode && (
-          <MobileBottomNav currentView={currentView} setCurrentView={setCurrentView} />
+          <MobileBottomNav currentView={currentView} setCurrentView={navigateTo} />
         )}
       </div>
     </div>
