@@ -6,6 +6,7 @@ import { createServer as createViteServer } from 'vite';
 import routes from './server/routes';
 import { initSocketIO } from './server/socket';
 import { connectMongoDB } from './server/database/mongoose';
+import { initMongoSync } from './server/db';
 import {
   applySecurityHeaders,
   sanitizeRequestData,
@@ -31,9 +32,13 @@ async function startServer() {
   initSocketIO(httpServer);
 
   // Initialize MongoDB Atlas connection (falls back to local store if MONGODB_URI not provided)
-  connectMongoDB().catch(err => {
-    console.warn('[Database] Optional MongoDB Atlas init deferred:', err.message);
-  });
+  connectMongoDB()
+    .then((connected) => {
+      if (connected) initMongoSync();
+    })
+    .catch(err => {
+      console.warn('[Database] Optional MongoDB Atlas init deferred:', err.message);
+    });
 
   // Global API Rate Limiter
   app.use('/api', globalApiLimiter);

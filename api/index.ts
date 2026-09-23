@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import routes from '../server/routes';
 import { connectMongoDB } from '../server/database/mongoose';
+import { initMongoSync } from '../server/db';
 import {
   applySecurityHeaders,
   sanitizeRequestData,
@@ -20,14 +21,24 @@ app.use(applySecurityHeaders);
 app.use(sanitizeRequestData);
 
 // Initialize MongoDB Atlas connection if available
-connectMongoDB().catch(err => {
-  console.warn('[Database] Optional MongoDB Atlas init deferred:', err.message);
-});
+connectMongoDB()
+  .then((connected) => {
+    if (connected) initMongoSync();
+  })
+  .catch((err) => {
+    console.warn('[Database] Optional MongoDB Atlas init deferred:', err.message);
+  });
+
+let hasHydratedMongo = false;
 
 // Middleware to ensure DB connection on serverless cold starts
 app.use(async (req, res, next) => {
   try {
-    await connectMongoDB();
+    const connected = await connectMongoDB();
+    if (connected && !hasHydratedMongo) {
+      hasHydratedMongo = true;
+      await initMongoSync();
+    }
   } catch (e) {
     // continue with local persistence if DB unavailable
   }
@@ -46,7 +57,7 @@ app.use(cookieParser());
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'EarnHub BD V20 Enterprise (Vercel Serverless)',
+    service: 'EarnNetwork BD (earnnetworkbd.com)',
     version: 'v20.0.0-enterprise',
   });
 });

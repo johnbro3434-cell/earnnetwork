@@ -35,6 +35,7 @@ import {
   WithdrawCard,
   SalaryTier,
 } from '../src/types';
+import { syncStoreToMongo, loadStoreFromMongo } from './database/mongoose';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'store.json');
 
@@ -1120,7 +1121,39 @@ export function saveStore() {
     }
     fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), 'utf-8');
   } catch (e) {
-    console.error('Error saving store:', e);
+    // In serverless / read-only filesystem environments, file write may fail gracefully
+  }
+
+  // Always sync to MongoDB Atlas when connected
+  syncStoreToMongo(store).catch((e) => {
+    console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
+  });
+}
+
+/**
+ * Initializes and synchronizes store with MongoDB Atlas
+ */
+export async function initMongoSync() {
+  try {
+    const mongoData = await loadStoreFromMongo();
+    if (mongoData && typeof mongoData === 'object' && Array.isArray(mongoData.users)) {
+      // Hydrate in-memory store from MongoDB Atlas
+      store = {
+        ...store,
+        ...mongoData,
+      };
+      console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
+      // Also update local cache
+      try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), 'utf-8');
+      } catch (e) {}
+    } else {
+      // First-time seed into MongoDB Atlas
+      console.log('[Database] Seeding initial platform state to MongoDB Atlas...');
+      await syncStoreToMongo(store);
+    }
+  } catch (err: any) {
+    console.warn('[Database] Error initializing MongoDB state sync:', err?.message);
   }
 }
 

@@ -149,3 +149,94 @@ const WithdrawSchema = new mongoose.Schema({
 });
 
 export const WithdrawModel = mongoose.models.Withdrawal || mongoose.model('Withdrawal', WithdrawSchema);
+
+// Master AppStore Mongoose Schema for complete persistent state across serverless instances
+const AppStoreSchema = new mongoose.Schema(
+  {
+    key: { type: String, required: true, unique: true, default: 'main_state' },
+    data: { type: mongoose.Schema.Types.Mixed, required: true },
+    version: { type: String, default: 'v20.0.0-enterprise' },
+    updatedAt: { type: Date, default: Date.now },
+  },
+  { minimize: false }
+);
+
+export const AppStoreModel = mongoose.models.AppStore || mongoose.model('AppStore', AppStoreSchema);
+
+/**
+ * Loads the platform state from MongoDB Atlas
+ */
+export async function loadStoreFromMongo(): Promise<any | null> {
+  if (!isConnected) return null;
+  try {
+    const doc: any = await AppStoreModel.findOne({ key: 'main_state' }).lean();
+    if (doc && doc.data && typeof doc.data === 'object') {
+      return doc.data;
+    }
+  } catch (err: any) {
+    console.warn('[Database] Failed to load store from MongoDB Atlas:', err?.message);
+  }
+  return null;
+}
+
+let syncTimeout: any = null;
+
+/**
+ * Debounced and reliable background sync of complete platform store to MongoDB Atlas
+ */
+export async function syncStoreToMongo(storeData: any): Promise<boolean> {
+  if (!isConnected) return false;
+
+  // Debounce rapid writes within 100ms
+  return new Promise((resolve) => {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(async () => {
+      try {
+        await AppStoreModel.updateOne(
+          { key: 'main_state' },
+          { $set: { data: storeData, updatedAt: new Date() } },
+          { upsert: true }
+        );
+
+        // Also sync key collections in background for direct Atlas queryability
+        if (Array.isArray(storeData.users) && storeData.users.length > 0) {
+          const bulkOps = storeData.users.slice(0, 500).map((u: any) => ({
+            updateOne: {
+              filter: { id: u.id },
+              update: { $set: u },
+              upsert: true,
+            },
+          }));
+          UserModel.bulkWrite(bulkOps).catch(() => {});
+        }
+
+        if (Array.isArray(storeData.deposits) && storeData.deposits.length > 0) {
+          const depOps = storeData.deposits.slice(0, 500).map((d: any) => ({
+            updateOne: {
+              filter: { id: d.id },
+              update: { $set: d },
+              upsert: true,
+            },
+          }));
+          DepositModel.bulkWrite(depOps).catch(() => {});
+        }
+
+        if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
+          const wOps = storeData.withdrawals.slice(0, 500).map((w: any) => ({
+            updateOne: {
+              filter: { id: w.id },
+              update: { $set: w },
+              upsert: true,
+            },
+          }));
+          WithdrawModel.bulkWrite(wOps).catch(() => {});
+        }
+
+        resolve(true);
+      } catch (err: any) {
+        console.warn('[Database] Background sync to MongoDB Atlas failed:', err?.message);
+        resolve(false);
+      }
+    }, 100);
+  });
+}
