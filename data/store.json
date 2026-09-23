@@ -1,7 +1,325 @@
 {
   "users": [],
   "wallets": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "tx_1790092125310_642",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Deposit (bKash TrxID: AUDIT816071)",
+      "balanceAfter": 14100,
+      "referenceId": "dep_test_1790092125309",
+      "createdAt": "2026-09-22T15:48:45.310Z"
+    },
+    {
+      "id": "tx_1790092113936_780",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Deposit (bKash TrxID: AUDIT857127)",
+      "balanceAfter": 13100,
+      "referenceId": "dep_test_1790092113935",
+      "createdAt": "2026-09-22T15:48:33.936Z"
+    },
+    {
+      "id": "tx_1790092104226_314",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Deposit (bKash TrxID: AUDIT303398)",
+      "balanceAfter": 12100,
+      "referenceId": "dep_test_1790092104224",
+      "createdAt": "2026-09-22T15:48:24.226Z"
+    },
+    {
+      "id": "tx_1790092095653_626",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Deposit (bKash TrxID: AUDIT956091)",
+      "balanceAfter": 11100,
+      "referenceId": "dep_test_1790092095652",
+      "createdAt": "2026-09-22T15:48:15.653Z"
+    },
+    {
+      "id": "tx_1790091712815_130",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 2500,
+      "description": "Instant Auto Deposit (bKash TrxID: AUTO821584)",
+      "balanceAfter": 10100,
+      "referenceId": "dep_test_1790091712812",
+      "createdAt": "2026-09-22T15:41:52.815Z"
+    },
+    {
+      "id": "tx_1790091679437_38",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 500,
+      "description": "Instant Auto Deposit (bKash TrxID: AUTO982803)",
+      "balanceAfter": 7600,
+      "referenceId": "dep_test_1",
+      "createdAt": "2026-09-22T15:41:19.437Z"
+    },
+    {
+      "id": "tx_1790090820413_783",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Deposit (bKash TrxID: TEST237294)",
+      "balanceAfter": 7100,
+      "referenceId": "dep_1790090820412",
+      "createdAt": "2026-09-22T15:27:00.413Z"
+    },
+    {
+      "id": "tx_1790090806556_890",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Deposit (bKash TrxID: TEST786571)",
+      "balanceAfter": 6100,
+      "referenceId": "dep_1790090806555",
+      "createdAt": "2026-09-22T15:26:46.556Z"
+    },
+    {
+      "id": "tx_1790088733354_809",
+      "userId": "user_1790088731395",
+      "type": "deposit",
+      "amount": 500,
+      "description": "Instant Auto Deposit (bKash TrxID: TESTTRX9988)",
+      "balanceAfter": 500,
+      "referenceId": "dep_1790088733353",
+      "createdAt": "2026-09-22T14:52:13.354Z"
+    },
+    {
+      "id": "tx_01",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 7500,
+      "description": "bKash Deposit Approved",
+      "balanceAfter": 7500,
+      "createdAt": "2026-09-12T14:25:30.099Z"
+    },
+    {
+      "id": "tx_02",
+      "userId": "user_01711111111",
+      "type": "package_purchase",
+      "amount": -7500,
+      "description": "Golden Package Purchase (10 Videos / 250 TK daily)",
+      "balanceAfter": 0,
+      "createdAt": "2026-09-12T14:26:30.099Z"
+    },
+    {
+      "id": "tx_1790089934518",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 4875,
+      "createdAt": "2026-09-22T15:12:14.518Z",
+      "referenceId": "th_1790089934517_jzu5"
+    },
+    {
+      "id": "tx_1790089947111",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 4900,
+      "createdAt": "2026-09-22T15:12:27.111Z",
+      "referenceId": "th_1790089947111_tflz"
+    },
+    {
+      "id": "tx_1790089959699",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 4925,
+      "createdAt": "2026-09-22T15:12:39.699Z",
+      "referenceId": "th_1790089959699_95oh"
+    },
+    {
+      "id": "tx_1790089972238",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 4950,
+      "createdAt": "2026-09-22T15:12:52.238Z",
+      "referenceId": "th_1790089972238_8pbh"
+    },
+    {
+      "id": "tx_1790089984820",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 4975,
+      "createdAt": "2026-09-22T15:13:04.820Z",
+      "referenceId": "th_1790089984820_43wp"
+    },
+    {
+      "id": "tx_1790089997358",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 5000,
+      "createdAt": "2026-09-22T15:13:17.358Z",
+      "referenceId": "th_1790089997358_gykl"
+    },
+    {
+      "id": "tx_1790090009891",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 5025,
+      "createdAt": "2026-09-22T15:13:29.891Z",
+      "referenceId": "th_1790090009891_hsbm"
+    },
+    {
+      "id": "tx_1790090022488",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 5050,
+      "createdAt": "2026-09-22T15:13:42.488Z",
+      "referenceId": "th_1790090022488_ja5a"
+    },
+    {
+      "id": "tx_1790090035021",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 5075,
+      "createdAt": "2026-09-22T15:13:55.021Z",
+      "referenceId": "th_1790090035021_nkoa"
+    },
+    {
+      "id": "tx_1790090047581",
+      "userId": "user_01711111111",
+      "type": "task_reward",
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 5100,
+      "createdAt": "2026-09-22T15:14:07.581Z",
+      "referenceId": "th_1790090047581_5jta"
+    },
+    {
+      "id": "tx_1790095612320",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1000,
+      "description": "Instant Auto Gateway Deposit via bKash (BK156524788)",
+      "balanceAfter": 15100,
+      "createdAt": "2026-09-22T16:46:52.320Z",
+      "referenceId": "dep_1790095612320"
+    },
+    {
+      "id": "tx_1790157174723",
+      "userId": "user_01711111111",
+      "type": "gift",
+      "amount": 50,
+      "description": "Admin Credit: Test validation bonus",
+      "balanceAfter": 15150,
+      "createdAt": "2026-09-23T09:52:54.723Z"
+    },
+    {
+      "id": "tx_1790157174729",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "amount": 1500,
+      "description": "bKash Deposit Approved (TrxID: AUTO840342)",
+      "balanceAfter": 16650,
+      "createdAt": "2026-09-23T09:52:54.729Z",
+      "referenceId": "dep_test_3"
+    },
+    {
+      "id": "tx_1790160315379",
+      "userId": "user_1790160315258",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 5,
+      "createdAt": "2026-09-23T10:45:15.379Z",
+      "referenceId": "th_1790160315379_q8rr"
+    },
+    {
+      "id": "tx_1790160347137",
+      "userId": "user_1790160347003",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 5,
+      "createdAt": "2026-09-23T10:45:47.137Z",
+      "referenceId": "th_1790160347136_26xt"
+    },
+    {
+      "id": "tx_1790160936506",
+      "userId": "user_1790160347003",
+      "type": "deposit",
+      "amount": 500,
+      "description": "bKash Deposit Approved (TrxID: TRX60347146)",
+      "balanceAfter": 505,
+      "createdAt": "2026-09-23T10:55:36.506Z",
+      "referenceId": "dep_1790160347147"
+    },
+    {
+      "id": "tx_1790189678087",
+      "userId": "user_1790189264201",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 5,
+      "createdAt": "2026-09-23T18:54:38.087Z",
+      "referenceId": "th_1790189678087_u23v"
+    },
+    {
+      "id": "tx_1790189806261",
+      "userId": "user_1790189264201",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 10,
+      "createdAt": "2026-09-23T18:56:46.261Z",
+      "referenceId": "th_1790189806261_rya5"
+    },
+    {
+      "id": "tx_1790189826540",
+      "userId": "user_1790189264201",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 15,
+      "createdAt": "2026-09-23T18:57:06.540Z",
+      "referenceId": "th_1790189826540_pjae"
+    },
+    {
+      "id": "tx_1790189841672",
+      "userId": "user_1790189264201",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 20,
+      "createdAt": "2026-09-23T18:57:21.672Z",
+      "referenceId": "th_1790189841672_pvt2"
+    },
+    {
+      "id": "tx_1790189856823",
+      "userId": "user_1790189264201",
+      "type": "task_reward",
+      "amount": 5,
+      "description": "10s Video Task Reward (Free Trial)",
+      "balanceAfter": 25,
+      "createdAt": "2026-09-23T18:57:36.823Z",
+      "referenceId": "th_1790189856823_w2dd"
+    }
+  ],
   "packages": [
     {
       "id": "pkg_trial",
@@ -82,8 +400,296 @@
       "enabled": true
     }
   ],
-  "deposits": [],
-  "withdraws": [],
+  "deposits": [
+    {
+      "id": "dep_1001",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 7500,
+      "paymentMethod": "bKash",
+      "assignedNumber": "01712345678",
+      "senderNumber": "01711111111",
+      "transactionId": "BK9A82J1KD",
+      "screenshotUrl": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop&q=80",
+      "status": "approved",
+      "verificationType": "manual",
+      "createdAt": "2026-09-12T14:25:30.099Z",
+      "reviewedAt": "2026-09-12T14:27:30.099Z",
+      "reviewedBy": "Fatema Tuz Zohra"
+    },
+    {
+      "id": "dep_1002",
+      "userId": "user_01933333333",
+      "userPhone": "01933333333",
+      "amount": 22500,
+      "paymentMethod": "Nagad",
+      "assignedNumber": "01811223344",
+      "senderNumber": "01933333333",
+      "transactionId": "NG771900AA",
+      "screenshotUrl": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80",
+      "status": "approved",
+      "verificationType": "manual",
+      "createdAt": "2026-08-28T14:25:30.099Z",
+      "reviewedAt": "2026-08-28T14:30:30.099Z",
+      "reviewedBy": "Sultan Mahmud"
+    },
+    {
+      "id": "dep_1790088733353",
+      "userId": "user_1790088731395",
+      "userPhone": "01799887766",
+      "amount": 500,
+      "paymentMethod": "bKash",
+      "assignedNumber": "01712345678",
+      "senderNumber": "01799887766",
+      "transactionId": "TESTTRX9988",
+      "screenshotUrl": "",
+      "status": "approved",
+      "verificationType": "auto",
+      "createdAt": "2026-09-22T14:52:13.353Z",
+      "autoVerified": true,
+      "matchedSmsId": "sms_1790088718394_245",
+      "reviewedAt": "2026-09-22T14:52:13.354Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_1790090806555",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "senderNumber": "01712345678",
+      "receiverNumber": "01800000000",
+      "transactionId": "TEST786571",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:26:46.555Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_1790090806555",
+      "reviewedAt": "2026-09-22T15:26:46.556Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_1790090820412",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "senderNumber": "01712345678",
+      "receiverNumber": "01800000000",
+      "transactionId": "TEST237294",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:27:00.412Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_1790090820412",
+      "reviewedAt": "2026-09-22T15:27:00.413Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_test_1",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 500,
+      "paymentMethod": "bKash",
+      "senderNumber": "01711223344",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUTO982803",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:41:19.436Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_1",
+      "reviewedAt": "2026-09-22T15:41:19.437Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_test_2",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1500,
+      "paymentMethod": "bKash",
+      "senderNumber": "01799887766",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUTO636121",
+      "status": "pending",
+      "createdAt": "2026-09-22T15:41:19.468Z"
+    },
+    {
+      "id": "dep_test_3",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1500,
+      "paymentMethod": "bKash",
+      "senderNumber": "01799887766",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUTO840342",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:41:47.988Z",
+      "reviewedAt": "2026-09-23T09:52:54.729Z",
+      "reviewedBy": "Sultan Mahmud (Chief Admin)"
+    },
+    {
+      "id": "dep_test_1790091712812",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 2500,
+      "paymentMethod": "bKash",
+      "senderNumber": "01343438887",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUTO821584",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:41:52.812Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_1790091712812",
+      "reviewedAt": "2026-09-22T15:41:52.815Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_test_1790092095652",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "senderNumber": "01683662217",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUDIT956091",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:48:15.652Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_test_1790092095652",
+      "reviewedAt": "2026-09-22T15:48:15.653Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_test_1790092104224",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "senderNumber": "01667816325",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUDIT303398",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:48:24.224Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_test_1790092104224",
+      "reviewedAt": "2026-09-22T15:48:24.226Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_test_1790092113935",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "senderNumber": "01673189761",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUDIT857127",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:48:33.935Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_test_1790092113935",
+      "reviewedAt": "2026-09-22T15:48:33.936Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_test_1790092125309",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "senderNumber": "01643579467",
+      "receiverNumber": "01800000000",
+      "transactionId": "AUDIT816071",
+      "status": "approved",
+      "createdAt": "2026-09-22T15:48:45.309Z",
+      "verificationType": "auto",
+      "autoVerified": true,
+      "matchedSmsId": "sms_test_1790092125309",
+      "reviewedAt": "2026-09-22T15:48:45.310Z",
+      "reviewedBy": "SYSTEM (Smart Auto Verification)"
+    },
+    {
+      "id": "dep_1790095612320",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 1000,
+      "paymentMethod": "bKash",
+      "assignedNumber": "01712345678",
+      "senderNumber": "01711111111",
+      "transactionId": "BK156524788",
+      "screenshotUrl": "",
+      "status": "approved",
+      "verificationType": "auto",
+      "createdAt": "2026-09-22T16:46:52.320Z"
+    },
+    {
+      "id": "dep_1790160315387",
+      "userId": "user_1790160315258",
+      "userPhone": "01717463731",
+      "amount": 500,
+      "paymentMethod": "bKash",
+      "assignedNumber": "01712345678",
+      "senderNumber": "01717463731",
+      "transactionId": "TRX60315385",
+      "screenshotUrl": "",
+      "status": "pending",
+      "verificationType": "auto",
+      "createdAt": "2026-09-23T10:45:15.387Z"
+    },
+    {
+      "id": "dep_1790160347147",
+      "userId": "user_1790160347003",
+      "userPhone": "01735402260",
+      "amount": 500,
+      "paymentMethod": "bKash",
+      "assignedNumber": "01712345678",
+      "senderNumber": "01735402260",
+      "transactionId": "TRX60347146",
+      "screenshotUrl": "",
+      "status": "approved",
+      "verificationType": "auto",
+      "createdAt": "2026-09-23T10:45:47.147Z",
+      "reviewedAt": "2026-09-23T10:55:36.506Z",
+      "reviewedBy": "Sultan Mahmud (Chief Admin)"
+    }
+  ],
+  "withdraws": [
+    {
+      "id": "wdr_2001",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "amount": 5800,
+      "fee": 580,
+      "netAmount": 5220,
+      "paymentMethod": "bKash",
+      "withdrawNumber": "01711111111",
+      "status": "paid",
+      "deviceFingerprint": "fp_desktop_dhaka_01",
+      "createdAt": "2026-09-17T14:25:30.099Z",
+      "updatedAt": "2026-09-17T15:25:30.099Z",
+      "timeline": [
+        {
+          "step": "pending",
+          "timestamp": "2026-09-17T14:25:30.099Z"
+        },
+        {
+          "step": "approved",
+          "timestamp": "2026-09-17T14:55:30.099Z",
+          "note": "Verified by Finance Admin"
+        },
+        {
+          "step": "paid",
+          "timestamp": "2026-09-17T15:25:30.099Z",
+          "note": "bKash TrxID: BKWDR991823"
+        }
+      ]
+    }
+  ],
   "videoTasks": [
     {
       "id": "task_vid_1",
@@ -131,7 +737,161 @@
       "category": "Enterprise IT"
     }
   ],
-  "taskHistories": [],
+  "taskHistories": [
+    {
+      "id": "th_1790089934517_jzu5",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:12:14.518Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790089947111_tflz",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_2",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:12:27.111Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790089959699_95oh",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_3",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:12:39.699Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790089972238_8pbh",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_4",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:12:52.238Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790089984820_43wp",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_5",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:13:04.820Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790089997358_gykl",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:13:17.358Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790090009891_hsbm",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_2",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:13:29.891Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790090022488_ja5a",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_3",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:13:42.488Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790090035021_nkoa",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_4",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:13:55.021Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790090047581_5jta",
+      "userId": "user_01711111111",
+      "taskId": "task_vid_5",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-22T15:14:07.581Z",
+      "ipAddress": "27.123.253.227, 169.254.169.126"
+    },
+    {
+      "id": "th_1790160315379_q8rr",
+      "userId": "user_1790160315258",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T10:45:15.379Z",
+      "ipAddress": "127.0.0.1"
+    },
+    {
+      "id": "th_1790160347136_26xt",
+      "userId": "user_1790160347003",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T10:45:47.136Z",
+      "ipAddress": "127.0.0.1"
+    },
+    {
+      "id": "th_1790189678087_u23v",
+      "userId": "user_1790189264201",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T18:54:38.087Z",
+      "ipAddress": "27.123.253.229, 169.254.169.126"
+    },
+    {
+      "id": "th_1790189806261_rya5",
+      "userId": "user_1790189264201",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T18:56:46.261Z",
+      "ipAddress": "27.123.253.238, 169.254.169.126"
+    },
+    {
+      "id": "th_1790189826540_pjae",
+      "userId": "user_1790189264201",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T18:57:06.540Z",
+      "ipAddress": "27.123.253.238, 169.254.169.126"
+    },
+    {
+      "id": "th_1790189841672_pvt2",
+      "userId": "user_1790189264201",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T18:57:21.672Z",
+      "ipAddress": "27.123.253.238, 169.254.169.126"
+    },
+    {
+      "id": "th_1790189856823_w2dd",
+      "userId": "user_1790189264201",
+      "taskId": "task_vid_1",
+      "packageId": "pkg_trial",
+      "rewardEarned": 5,
+      "completedAt": "2026-09-23T18:57:36.823Z",
+      "ipAddress": "27.123.253.238, 169.254.169.126"
+    }
+  ],
   "paymentNumbers": [
     {
       "id": "num_bkash_1",
@@ -296,9 +1056,124 @@
       "createdAt": "2026-09-23T19:07:57.714Z"
     }
   ],
-  "activityLogs": [],
+  "activityLogs": [
+    {
+      "id": "log_01",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "System Initialization",
+      "target": "EarnHub BD V20 Enterprise",
+      "details": "Locked specification v20 enterprise deployment initiated with Socket.io real-time engine",
+      "timestamp": "2026-09-22T14:25:30.099Z"
+    },
+    {
+      "id": "log_1790157174723",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "Credit Balance",
+      "target": "01711111111",
+      "details": "+50 TK. Reason: Test validation bonus. Previous: 15100, New: 15150",
+      "timestamp": "2026-09-23T09:52:54.723Z"
+    },
+    {
+      "id": "log_1790157174729",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "Deposit Review: approved",
+      "target": "AUTO840342",
+      "details": "approved 1500 TK for 01711111111",
+      "timestamp": "2026-09-23T09:52:54.729Z"
+    },
+    {
+      "id": "log_1790160936507",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "Deposit Review: approved",
+      "target": "TRX60347146",
+      "details": "approved 500 TK for 01735402260",
+      "timestamp": "2026-09-23T10:55:36.507Z"
+    },
+    {
+      "id": "log_1790162829423",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "Create Salary Tier",
+      "target": "Tier 4: Crown Ambassador",
+      "details": "Added new salary tier: Tier 4: Crown Ambassador requiring 100 (direct_paid) for ৳50000/mo.",
+      "timestamp": "2026-09-23T11:27:09.423Z"
+    },
+    {
+      "id": "log_1790162829432",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "Update Salary Tier",
+      "target": "Tier 4: Supreme Crown Ambassador",
+      "details": "Updated salary tier: Tier 4: Supreme Crown Ambassador - Req: 120 (direct_paid), Salary: ৳60000",
+      "timestamp": "2026-09-23T11:27:09.432Z"
+    },
+    {
+      "id": "log_1790162829438",
+      "adminId": "admin_main_01",
+      "adminName": "Sultan Mahmud (Chief Admin)",
+      "action": "Delete Salary Tier",
+      "target": "Tier 4: Supreme Crown Ambassador",
+      "details": "Deleted salary tier: Tier 4: Supreme Crown Ambassador",
+      "timestamp": "2026-09-23T11:27:09.438Z"
+    }
+  ],
   "deviceFingerprints": [],
-  "supportTickets": [],
+  "supportTickets": [
+    {
+      "id": "tkt_1001",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "subject": "Deposit confirmation query for bKash",
+      "category": "Deposit",
+      "priority": "high",
+      "status": "resolved",
+      "createdAt": "2026-09-19T14:25:29.633Z",
+      "updatedAt": "2026-09-19T15:25:29.633Z",
+      "messages": [
+        {
+          "id": "msg_1",
+          "senderId": "user_01711111111",
+          "senderName": "01711111111",
+          "senderType": "user",
+          "message": "Hello, I sent 7,500 TK via bKash TrxID BK9A82J1KD. How long will it take to verify?",
+          "createdAt": "2026-09-19T14:25:29.633Z"
+        },
+        {
+          "id": "msg_2",
+          "senderId": "admin_finance_01",
+          "senderName": "Fatema Tuz Zohra (Finance Admin)",
+          "senderType": "admin",
+          "message": "Your deposit has been verified and added to your wallet balance. You can now purchase your Golden Package from the Packages tab.",
+          "createdAt": "2026-09-19T14:55:29.633Z"
+        }
+      ]
+    },
+    {
+      "id": "tkt_1002",
+      "userId": "user_01822222222",
+      "userPhone": "01822222222",
+      "subject": "Free trial video task countdown question",
+      "category": "Tasks",
+      "priority": "medium",
+      "status": "open",
+      "createdAt": "2026-09-22T09:25:29.633Z",
+      "updatedAt": "2026-09-22T09:25:29.633Z",
+      "messages": [
+        {
+          "id": "msg_3",
+          "senderId": "user_01822222222",
+          "senderName": "01822222222",
+          "senderType": "user",
+          "message": "Assalamu Alaikum. How many trial days do I have left for earning 25 TK daily?",
+          "createdAt": "2026-09-22T09:25:29.633Z"
+        }
+      ]
+    }
+  ],
   "sliders": [
     {
       "id": "slide_nagad_bonus",
@@ -705,9 +1580,638 @@
       "createdAt": "2026-09-22T16:46:52.320Z"
     }
   ],
-  "verificationLogs": [],
-  "fraudLogs": [],
-  "walletTransactions": [],
+  "verificationLogs": [
+    {
+      "depositId": "dep_1790160347147",
+      "userId": "user_1790160347003",
+      "userPhone": "01735402260",
+      "trxId": "TRX60347146",
+      "paymentMethod": "bKash",
+      "amount": 500,
+      "status": "pending_unmatched",
+      "score": 0,
+      "scoreBreakdown": {
+        "trxIdMatch": false,
+        "amountMatch": false,
+        "senderMatch": false,
+        "methodMatch": false,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "reason": "TrxID not yet received from MFS gateway",
+      "ipAddress": "127.0.0.1",
+      "id": "vlog_1790160347148_471",
+      "createdAt": "2026-09-23T10:45:47.148Z"
+    },
+    {
+      "depositId": "dep_1790160315387",
+      "userId": "user_1790160315258",
+      "userPhone": "01717463731",
+      "trxId": "TRX60315385",
+      "paymentMethod": "bKash",
+      "amount": 500,
+      "status": "pending_unmatched",
+      "score": 0,
+      "scoreBreakdown": {
+        "trxIdMatch": false,
+        "amountMatch": false,
+        "senderMatch": false,
+        "methodMatch": false,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "reason": "TrxID not yet received from MFS gateway",
+      "ipAddress": "127.0.0.1",
+      "id": "vlog_1790160315389_334",
+      "createdAt": "2026-09-23T10:45:15.389Z"
+    },
+    {
+      "depositId": "dep_dup_1790092125340",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT816071",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "fraud_duplicate",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": false,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092125309",
+      "reason": "Transaction ID already used by account user_01711111111",
+      "id": "vlog_1790092125341_471",
+      "createdAt": "2026-09-22T15:48:45.341Z"
+    },
+    {
+      "depositId": "dep_test_1790092125309",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT816071",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092125309",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790092125312_506",
+      "createdAt": "2026-09-22T15:48:45.312Z"
+    },
+    {
+      "depositId": "dep_dup_1790092113964",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT857127",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "fraud_duplicate",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": false,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092113935",
+      "reason": "Transaction ID already used by account user_01711111111",
+      "id": "vlog_1790092113965_165",
+      "createdAt": "2026-09-22T15:48:33.965Z"
+    },
+    {
+      "depositId": "dep_test_1790092113935",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT857127",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092113935",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790092113938_185",
+      "createdAt": "2026-09-22T15:48:33.938Z"
+    },
+    {
+      "depositId": "dep_dup_1790092104253",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT303398",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "fraud_duplicate",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": false,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092104224",
+      "reason": "Transaction ID already used by account user_01711111111",
+      "id": "vlog_1790092104254_159",
+      "createdAt": "2026-09-22T15:48:24.254Z"
+    },
+    {
+      "depositId": "dep_test_1790092104224",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT303398",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092104224",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790092104227_753",
+      "createdAt": "2026-09-22T15:48:24.227Z"
+    },
+    {
+      "depositId": "dep_dup_1790092095684",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT956091",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "fraud_duplicate",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": false,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092095652",
+      "reason": "Transaction ID already used by account user_01711111111",
+      "id": "vlog_1790092095684_558",
+      "createdAt": "2026-09-22T15:48:15.684Z"
+    },
+    {
+      "depositId": "dep_test_1790092095652",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUDIT956091",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_test_1790092095652",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790092095655_133",
+      "createdAt": "2026-09-22T15:48:15.655Z"
+    },
+    {
+      "depositId": "dep_test_1790091712812",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUTO821584",
+      "paymentMethod": "bKash",
+      "amount": 2500,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_1790091712812",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "ipAddress": "SMS_GATEWAY_SYNC",
+      "id": "vlog_1790091712816_162",
+      "createdAt": "2026-09-22T15:41:52.816Z"
+    },
+    {
+      "depositId": "dep_test_2",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUTO840342",
+      "paymentMethod": "bKash",
+      "amount": 1500,
+      "status": "fraud_mismatch",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": false
+      },
+      "matchedSmsId": "sms_2",
+      "reason": "Verification score (86%) below 100% threshold: Sender number 01799887766 was recently submitted by user user_1790088731395 (Deposit dep_1790088733353) within the last 2 hours.",
+      "ipAddress": "DEBUG",
+      "id": "vlog_1790091707990_852",
+      "createdAt": "2026-09-22T15:41:47.990Z"
+    },
+    {
+      "depositId": "dep_test_2",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUTO636121",
+      "paymentMethod": "bKash",
+      "amount": 1500,
+      "status": "fraud_mismatch",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": false
+      },
+      "matchedSmsId": "sms_2",
+      "reason": "Verification score (86%) below 100% threshold: Sender number 01799887766 was recently submitted by user user_1790088731395 (Deposit dep_1790088733353) within the last 2 hours.",
+      "ipAddress": "SMS_GATEWAY_SYNC",
+      "id": "vlog_1790091679469_501",
+      "createdAt": "2026-09-22T15:41:19.469Z"
+    },
+    {
+      "depositId": "dep_test_1",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "AUTO982803",
+      "paymentMethod": "bKash",
+      "amount": 500,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_1",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790091679438_192",
+      "createdAt": "2026-09-22T15:41:19.438Z"
+    },
+    {
+      "depositId": "dep_1790090820412",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "TEST237294",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "fraud_duplicate",
+      "score": 86,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": false,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_1790090820412",
+      "reason": "Transaction ID already used by account user_01711111111",
+      "id": "vlog_1790090820441_497",
+      "createdAt": "2026-09-22T15:27:00.441Z"
+    },
+    {
+      "depositId": "dep_1790090820412",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "TEST237294",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_1790090820412",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790090820414_2",
+      "createdAt": "2026-09-22T15:27:00.414Z"
+    },
+    {
+      "depositId": "dep_1790090806555",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "trxId": "TEST786571",
+      "paymentMethod": "bKash",
+      "amount": 1000,
+      "status": "auto_approved",
+      "score": 100,
+      "scoreBreakdown": {
+        "trxIdMatch": true,
+        "amountMatch": true,
+        "senderMatch": true,
+        "methodMatch": true,
+        "unusedCheck": true,
+        "timeValid": true,
+        "senderOwnershipPassed": true
+      },
+      "matchedSmsId": "sms_1790090806555",
+      "reason": "Score 100% — Instant MFS Auto-Verification Match",
+      "id": "vlog_1790090806557_342",
+      "createdAt": "2026-09-22T15:26:46.557Z"
+    },
+    {
+      "depositId": "dep_1790088733353",
+      "userId": "user_1790088731395",
+      "userPhone": "01799887766",
+      "trxId": "TESTTRX9988",
+      "paymentMethod": "bKash",
+      "amount": 500,
+      "status": "auto_approved",
+      "matchedSmsId": "sms_1790088718394_245",
+      "reason": "Instant SMS Gateway Auto-Verification Match",
+      "ipAddress": "127.0.0.1",
+      "id": "vlog_1790088733364_85",
+      "createdAt": "2026-09-22T14:52:13.364Z"
+    }
+  ],
+  "fraudLogs": [
+    {
+      "type": "reused_trx",
+      "severity": "critical",
+      "trxId": "AUDIT816071",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01643579467",
+      "details": "Attempted reuse of already credited TrxID: AUDIT816071. Originally credited to user: user_01711111111",
+      "id": "flog_1790092125340_654",
+      "createdAt": "2026-09-22T15:48:45.340Z"
+    },
+    {
+      "type": "reused_trx",
+      "severity": "critical",
+      "trxId": "AUDIT857127",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01673189761",
+      "details": "Attempted reuse of already credited TrxID: AUDIT857127. Originally credited to user: user_01711111111",
+      "id": "flog_1790092113964_577",
+      "createdAt": "2026-09-22T15:48:33.964Z"
+    },
+    {
+      "type": "reused_trx",
+      "severity": "critical",
+      "trxId": "AUDIT303398",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01667816325",
+      "details": "Attempted reuse of already credited TrxID: AUDIT303398. Originally credited to user: user_01711111111",
+      "id": "flog_1790092104253_964",
+      "createdAt": "2026-09-22T15:48:24.253Z"
+    },
+    {
+      "type": "reused_trx",
+      "severity": "critical",
+      "trxId": "AUDIT956091",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01683662217",
+      "details": "Attempted reuse of already credited TrxID: AUDIT956091. Originally credited to user: user_01711111111",
+      "id": "flog_1790092095684_838",
+      "createdAt": "2026-09-22T15:48:15.684Z"
+    },
+    {
+      "type": "suspicious_sender_sharing",
+      "severity": "high",
+      "trxId": "AUTO840342",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01799887766",
+      "details": "Sender number 01799887766 was recently submitted by user user_1790088731395 (Deposit dep_1790088733353) within the last 2 hours.",
+      "id": "flog_1790091707989_745",
+      "createdAt": "2026-09-22T15:41:47.989Z"
+    },
+    {
+      "type": "suspicious_sender_sharing",
+      "severity": "high",
+      "trxId": "AUTO636121",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01799887766",
+      "details": "Sender number 01799887766 was recently submitted by user user_1790088731395 (Deposit dep_1790088733353) within the last 2 hours.",
+      "id": "flog_1790091679469_95",
+      "createdAt": "2026-09-22T15:41:19.469Z"
+    },
+    {
+      "type": "reused_trx",
+      "severity": "critical",
+      "trxId": "TEST237294",
+      "userId": "user_01711111111",
+      "userPhone": "01711111111",
+      "senderNumber": "01712345678",
+      "details": "Attempted reuse of already credited TrxID: TEST237294. Originally credited to user: user_01711111111",
+      "id": "flog_1790090820441_930",
+      "createdAt": "2026-09-22T15:27:00.441Z"
+    },
+    {
+      "type": "duplicate_trx",
+      "severity": "high",
+      "trxId": "TESTTRX9988",
+      "userId": "user_1790088731395",
+      "userPhone": "01799887766",
+      "senderNumber": "01799887766",
+      "details": "Duplicate TrxID submitted: TESTTRX9988. Original status: approved",
+      "id": "flog_1790088744805_167",
+      "createdAt": "2026-09-22T14:52:24.805Z"
+    }
+  ],
+  "walletTransactions": [
+    {
+      "userId": "user_1790160347003",
+      "transactionType": "Deposit Verification",
+      "amount": 500,
+      "balanceBefore": 5,
+      "balanceAfter": 505,
+      "reason": "Deposit Verification (Manual Review Approved)",
+      "referenceId": "dep_1790160347147",
+      "createdBy": "Sultan Mahmud (Chief Admin)",
+      "status": "completed",
+      "id": "wtx_1790160936506_895",
+      "createdAt": "2026-09-23T10:55:36.506Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1500,
+      "balanceBefore": 15150,
+      "balanceAfter": 16650,
+      "reason": "Deposit Verification (Manual Review Approved)",
+      "referenceId": "dep_test_3",
+      "createdBy": "Sultan Mahmud (Chief Admin)",
+      "status": "completed",
+      "id": "wtx_1790157174729_48",
+      "createdAt": "2026-09-23T09:52:54.729Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1000,
+      "balanceBefore": 13100,
+      "balanceAfter": 14100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: AUDIT816071)",
+      "referenceId": "dep_test_1790092125309",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790092125310_842",
+      "createdAt": "2026-09-22T15:48:45.310Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1000,
+      "balanceBefore": 12100,
+      "balanceAfter": 13100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: AUDIT857127)",
+      "referenceId": "dep_test_1790092113935",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790092113936_57",
+      "createdAt": "2026-09-22T15:48:33.936Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1000,
+      "balanceBefore": 11100,
+      "balanceAfter": 12100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: AUDIT303398)",
+      "referenceId": "dep_test_1790092104224",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790092104226_437",
+      "createdAt": "2026-09-22T15:48:24.226Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1000,
+      "balanceBefore": 10100,
+      "balanceAfter": 11100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: AUDIT956091)",
+      "referenceId": "dep_test_1790092095652",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790092095653_749",
+      "createdAt": "2026-09-22T15:48:15.653Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 2500,
+      "balanceBefore": 7600,
+      "balanceAfter": 10100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: AUTO821584)",
+      "referenceId": "dep_test_1790091712812",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790091712815_435",
+      "createdAt": "2026-09-22T15:41:52.815Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 500,
+      "balanceBefore": 7100,
+      "balanceAfter": 7600,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: AUTO982803)",
+      "referenceId": "dep_test_1",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790091679437_786",
+      "createdAt": "2026-09-22T15:41:19.437Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1000,
+      "balanceBefore": 6100,
+      "balanceAfter": 7100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: TEST237294)",
+      "referenceId": "dep_1790090820412",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790090820413_605",
+      "createdAt": "2026-09-22T15:27:00.413Z"
+    },
+    {
+      "userId": "user_01711111111",
+      "transactionType": "Deposit Verification",
+      "amount": 1000,
+      "balanceBefore": 5100,
+      "balanceAfter": 6100,
+      "reason": "Smart Auto Deposit Verified (bKash TrxID: TEST786571)",
+      "referenceId": "dep_1790090806555",
+      "createdBy": "SYSTEM (Smart Auto Verification)",
+      "status": "completed",
+      "id": "wtx_1790090806556_578",
+      "createdAt": "2026-09-22T15:26:46.556Z"
+    }
+  ],
   "auditLogs": [
     {
       "adminId": "admin_main_01",
@@ -835,7 +2339,99 @@
       "uploadedBy": "Sultan Mahmud (Chief Admin)"
     }
   ],
-  "withdrawCards": [],
+  "withdrawCards": [
+    {
+      "id": "wcard_100",
+      "amount": 100,
+      "label": "ফ্রি ট্রায়াল কার্ড",
+      "badge": "FREE TRIAL",
+      "badgeColor": "cyan",
+      "minRole": "Member",
+      "isTrialAllowed": true,
+      "enabled": true,
+      "order": 1,
+      "description": "ফ্রি ট্রায়াল সম্পন্ন ইউজারদের জন্য নির্ধারিত উইথড্র কার্ড",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    },
+    {
+      "id": "wcard_460",
+      "amount": 460,
+      "label": "মিনি ক্যাশআউট",
+      "badge": "STARTER",
+      "badgeColor": "emerald",
+      "minRole": "Member",
+      "isTrialAllowed": false,
+      "enabled": true,
+      "order": 2,
+      "description": "ভিআইপি মেম্বারদের সর্বনিম্ন নিয়মিত ক্যাশআউট কার্ড",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    },
+    {
+      "id": "wcard_1680",
+      "amount": 1680,
+      "label": "স্ট্যান্ডার্ড পেআউট",
+      "badge": "POPULAR",
+      "badgeColor": "amber",
+      "minRole": "Member",
+      "isTrialAllowed": false,
+      "enabled": true,
+      "order": 3,
+      "description": "সর্বাধিক ব্যবহৃত জনপ্রিয় উইথড্র কার্ড",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    },
+    {
+      "id": "wcard_5800",
+      "amount": 5800,
+      "label": "এক্সিকিউটিভ ক্যাশ",
+      "badge": "FAST PAYOUT",
+      "badgeColor": "purple",
+      "minRole": "Member",
+      "isTrialAllowed": false,
+      "enabled": true,
+      "order": 4,
+      "description": "দ্রুত প্রসেসিং সম্পন্ন প্রিমিয়াম কার্ড",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    },
+    {
+      "id": "wcard_16800",
+      "amount": 16800,
+      "label": "প্রো আর্নার পেআউট",
+      "badge": "HOT",
+      "badgeColor": "rose",
+      "minRole": "Member",
+      "isTrialAllowed": false,
+      "enabled": true,
+      "order": 5,
+      "description": "হাই ভলিউম মেম্বারদের জন্য বিশেষ কার্ড",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    },
+    {
+      "id": "wcard_49999",
+      "amount": 49999,
+      "label": "মাস্টার ভিআইপি পেআউট",
+      "badge": "VIP CLUB",
+      "badgeColor": "amber",
+      "minRole": "Member",
+      "isTrialAllowed": false,
+      "enabled": true,
+      "order": 6,
+      "description": "ভিআইপি ও লিডারদের জন্য মেগা ক্যাশআউট",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    },
+    {
+      "id": "wcard_150000",
+      "amount": 150000,
+      "label": "রয়্যাল এলিট পেআউট",
+      "badge": "ELITE SUPREME",
+      "badgeColor": "cyan",
+      "minRole": "Member",
+      "isTrialAllowed": false,
+      "enabled": true,
+      "order": 7,
+      "description": "সর্বোচ্চ সীমা এক্সক্লুসিভ এলিট উইথড্র কার্ড",
+      "createdAt": "2026-09-22T16:45:46.936Z"
+    }
+  ],
   "salaryTiers": [
     {
       "id": "tier_manager",

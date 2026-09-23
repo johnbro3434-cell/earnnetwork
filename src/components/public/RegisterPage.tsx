@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Phone, Lock, Share2, ArrowRight, AlertCircle } from 'lucide-react';
+import { Phone, Lock, Share2, ArrowRight, AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 
 interface RegisterPageProps {
   onNavigate: (view: string) => void;
   onRegisterSuccess: () => void;
+}
+
+interface SponsorValidation {
+  valid: boolean;
+  isOfficial?: boolean;
+  sponsorName?: string;
+  sponsorPhone?: string;
+  sponsorRole?: string;
+  message?: string;
 }
 
 export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProps) {
@@ -23,6 +32,36 @@ export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProp
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+
+  // Real-time Referral Verification State
+  const [refCheckLoading, setRefCheckLoading] = useState(false);
+  const [refValidation, setRefValidation] = useState<SponsorValidation | null>(null);
+
+  // Debounced real-time DB check for Referral Code
+  useEffect(() => {
+    const cleanCode = referralCode.trim().toUpperCase();
+    if (!cleanCode) {
+      setRefValidation(null);
+      setRefCheckLoading(false);
+      return;
+    }
+
+    setRefCheckLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/auth/validate-referral?code=${encodeURIComponent(cleanCode)}`);
+        const data: SponsorValidation = await res.json();
+        setRefValidation(data);
+      } catch (err) {
+        // If fetch fails, keep validation null or lenient
+        setRefValidation(null);
+      } finally {
+        setRefCheckLoading(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [referralCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,14 +88,25 @@ export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProp
       return;
     }
 
-    if (!referralCode || !referralCode.trim()) {
+    const cleanRef = referralCode.trim().toUpperCase();
+    if (!cleanRef) {
       setError('রেফার কোড আবশ্যক! রেফার কোড ছাড়া অ্যাকাউন্ট তৈরি করা সম্ভব নয়।');
+      return;
+    }
+
+    if (refValidation && !refValidation.valid) {
+      setError(refValidation.message || 'ভুয়া বা অস্তিত্বহীন রেফার কোড! ডাটাবেসে এই কোডের কোনো ইউজার নেই।');
+      return;
+    }
+
+    if (refCheckLoading) {
+      setError('রেফার কোড ডাটাবেসে যাচাই করা হচ্ছে, এক মুহূর্ত অপেক্ষা করুন...');
       return;
     }
 
     setLoading(true);
     try {
-      await register(cleanPhone, password, referralCode.trim().toUpperCase());
+      await register(cleanPhone, password, cleanRef);
       onRegisterSuccess();
     } catch (err: any) {
       setError(err.message || 'রেজিস্ট্রেশন সম্পন্ন হতে পারেনি। অনুগ্রহ করে আবার চেষ্টা করুন।');
@@ -163,16 +213,60 @@ export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProp
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                 placeholder="Enter sponsor referral code (e.g. EHBD1001)"
-                className="w-full pl-10 pr-4 py-3 glass-input rounded-xl text-white text-sm uppercase font-mono tracking-wider focus:border-purple-400/80 transition"
+                className={`w-full pl-10 pr-10 py-3 glass-input rounded-xl text-white text-sm uppercase font-mono tracking-wider transition ${
+                  refValidation?.valid
+                    ? 'border-emerald-500/80 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/30'
+                    : refValidation && !refValidation.valid
+                    ? 'border-rose-500/80 focus:border-rose-400 focus:ring-1 focus:ring-rose-500/30'
+                    : 'focus:border-purple-400/80'
+                }`}
               />
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                {refCheckLoading && <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />}
+                {!refCheckLoading && refValidation?.valid && (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                )}
+                {!refCheckLoading && refValidation && !refValidation.valid && (
+                  <XCircle className="w-4 h-4 text-rose-400" />
+                )}
+              </div>
             </div>
+
+            {/* Live Referral Feedback */}
+            {refCheckLoading && (
+              <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
+                <Loader2 className="w-3 h-3 animate-spin text-emerald-400" />
+                ডাটাবেসে স্পন্সর রেফার কোড যাচাই করা হচ্ছে...
+              </p>
+            )}
+
+            {!refCheckLoading && refValidation?.valid && (
+              <div className="mt-2 p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                <span>
+                  <strong>বৈধ স্পন্সর:</strong> {refValidation.sponsorName}
+                  {refValidation.sponsorRole && (
+                    <span className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                      {refValidation.sponsorRole}
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+
+            {!refCheckLoading && refValidation && !refValidation.valid && (
+              <div className="mt-2 p-2.5 rounded-lg bg-rose-950/60 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2">
+                <XCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+                <span>{refValidation.message || 'ভুয়া বা অস্তিত্বহীন রেফার কোড! ডাটাবেসে এই কোড পাওয়া যায়নি।'}</span>
+              </div>
+            )}
           </div>
 
           <button
             id="btn-submit-register"
             type="submit"
-            disabled={loading}
-            className="w-full glass-btn-primary flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-slate-950 font-bold text-sm transition disabled:opacity-50 cursor-pointer min-h-[46px]"
+            disabled={loading || refCheckLoading || Boolean(refValidation && !refValidation.valid) || !referralCode.trim()}
+            className="w-full glass-btn-primary flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-slate-950 font-bold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[46px]"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
             {!loading && <ArrowRight className="w-4 h-4 stroke-[2.5]" />}

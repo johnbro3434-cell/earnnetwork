@@ -2044,6 +2044,50 @@ function authenticateAdmin(req, res, next) {
     next();
   });
 }
+router.get(["/auth/validate-referral", "/api/auth/validate-referral"], (req, res) => {
+  const rawCode = (req.query.code || "").trim();
+  if (!rawCode) {
+    return res.json({ valid: false, message: "\u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1 \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964" });
+  }
+  const cleanRefCode = rawCode.toUpperCase();
+  const store2 = getStore();
+  const officialCodes = [
+    "EHBD1001",
+    "EARNHUB20",
+    store2.settings?.defaultReferralCode
+  ].filter(Boolean).map((c) => c.toUpperCase());
+  if (officialCodes.includes(cleanRefCode)) {
+    return res.json({
+      valid: true,
+      isOfficial: true,
+      sponsorName: "Official System Sponsor (\u09B9\u09C7\u09A1 \u0985\u09AB\u09BF\u09B8)",
+      sponsorRole: "Head Office"
+    });
+  }
+  const uplineUser = store2.users.find(
+    (u) => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
+  );
+  if (!uplineUser) {
+    return res.json({
+      valid: false,
+      message: "\u09AD\u09C1\u09DF\u09BE \u09AC\u09BE \u0985\u09B8\u09CD\u09A4\u09BF\u09A4\u09CD\u09AC\u09B9\u09C0\u09A8 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1! \u09A1\u09BE\u099F\u09BE\u09AC\u09C7\u09B8\u09C7 \u098F\u0987 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1\u09C7\u09B0 \u0995\u09CB\u09A8\u09CB \u0987\u0989\u099C\u09BE\u09B0 \u09A8\u09C7\u0987\u0964"
+    });
+  }
+  if (uplineUser.status === "suspended") {
+    return res.json({
+      valid: false,
+      message: "\u098F\u0987 \u09B0\u09C7\u09AB\u09BE\u09B0\u09BE\u09B0\u09C7\u09B0 \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F \u09B8\u09BE\u09AE\u09DF\u09BF\u0995\u09AD\u09BE\u09AC\u09C7 \u09B8\u09CD\u09A5\u0997\u09BF\u09A4 \u09AC\u09BE \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09DF \u09B0\u09DF\u09C7\u099B\u09C7\u0964"
+    });
+  }
+  const maskedPhone = uplineUser.phone.length >= 11 ? uplineUser.phone.slice(0, 3) + "****" + uplineUser.phone.slice(-4) : uplineUser.phone;
+  return res.json({
+    valid: true,
+    isOfficial: false,
+    sponsorName: uplineUser.name ? uplineUser.name : `\u09B8\u0995\u09CD\u09B0\u09BF\u09DF \u09AE\u09C7\u09AE\u09CD\u09AC\u09BE\u09B0 (${maskedPhone})`,
+    sponsorPhone: maskedPhone,
+    sponsorRole: uplineUser.role || "Member"
+  });
+});
 router.post("/auth/register", authRateLimiter, (req, res) => {
   const { phone, password, referralCode, deviceFingerprint } = req.body;
   if (!phone || !password) {
@@ -2067,11 +2111,28 @@ router.post("/auth/register", authRateLimiter, (req, res) => {
     });
   }
   const cleanRefCode = referralCode.trim().toUpperCase();
-  const uplineUser = store2.users.find((u) => u.referralCode.toUpperCase() === cleanRefCode);
-  const isOfficialCode = cleanRefCode === "EHBD1001" || cleanRefCode === "EARNHUB20";
+  const officialCodes = [
+    "EHBD1001",
+    "EARNHUB20",
+    store2.settings?.defaultReferralCode
+  ].filter(Boolean).map((c) => c.toUpperCase());
+  const isOfficialCode = officialCodes.includes(cleanRefCode);
+  const uplineUser = store2.users.find(
+    (u) => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
+  );
   if (!uplineUser && !isOfficialCode) {
     return res.status(400).json({
-      error: "\u09AD\u09C1\u09B2 \u09AC\u09BE \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1\u0964 \u0985\u09A8\u09C1\u0997\u09CD\u09B0\u09B9 \u0995\u09B0\u09C7 \u09B8\u09A0\u09BF\u0995 \u0993 \u09B8\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1 \u09A6\u09BF\u09A8\u0964"
+      error: "\u09AD\u09C1\u09DF\u09BE \u09AC\u09BE \u0985\u09B8\u09CD\u09A4\u09BF\u09A4\u09CD\u09AC\u09B9\u09C0\u09A8 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1! \u09B6\u09C1\u09A7\u09C1\u09AE\u09BE\u09A4\u09CD\u09B0 \u09A1\u09BE\u099F\u09BE\u09AC\u09C7\u09B8\u09C7\u09B0 \u09AC\u09C8\u09A7 \u0993 \u09B8\u0995\u09CD\u09B0\u09BF\u09DF \u0987\u0989\u099C\u09BE\u09B0\u09C7\u09B0 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1 \u0997\u09CD\u09B0\u09B9\u09A3\u09AF\u09CB\u0997\u09CD\u09AF\u0964"
+    });
+  }
+  if (uplineUser && uplineUser.status === "suspended") {
+    return res.status(400).json({
+      error: "\u098F\u0987 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1\u09C7\u09B0 \u09AE\u09BE\u09B2\u09BF\u0995\u09C7\u09B0 \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F\u099F\u09BF \u09B8\u09BE\u09AE\u09DF\u09BF\u0995\u09AD\u09BE\u09AC\u09C7 \u09B8\u09CD\u09A5\u0997\u09BF\u09A4 \u09AC\u09BE \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09DF \u09B0\u09DF\u09C7\u099B\u09C7\u0964 \u0985\u09A8\u09C1\u0997\u09CD\u09B0\u09B9 \u0995\u09B0\u09C7 \u0985\u09A8\u09CD\u09AF \u09B8\u0995\u09CD\u09B0\u09BF\u09DF \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1 \u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8\u0964"
+    });
+  }
+  if (uplineUser && uplineUser.phone === normalizedPhone) {
+    return res.status(400).json({
+      error: "\u09A8\u09BF\u099C\u09C7\u09B0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09AC\u09BE \u09A8\u09BF\u099C\u09C7\u09B0 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1 \u09A6\u09BF\u09DF\u09C7 \u09B0\u09C7\u09AB\u09BE\u09B0\u09C7\u09B2 \u098F\u0995\u09BE\u0989\u09A8\u09CD\u099F \u0996\u09CB\u09B2\u09BE \u09B8\u09AE\u09CD\u09AD\u09AC \u09A8\u09DF\u0964"
     });
   }
   const salt = bcrypt2.genSaltSync(10);

@@ -140,6 +140,62 @@ export function authenticateAdmin(req: Request, res: Response, next: () => void)
 // PUBLIC & AUTH ROUTES
 // ==========================================
 
+// Validate Referral Code (Real-time DB verification endpoint)
+router.get(['/auth/validate-referral', '/api/auth/validate-referral'], (req: Request, res: Response) => {
+  const rawCode = ((req.query.code as string) || '').trim();
+  if (!rawCode) {
+    return res.json({ valid: false, message: 'রেফার কোড প্রদান করুন।' });
+  }
+
+  const cleanRefCode = rawCode.toUpperCase();
+  const store = getStore();
+
+  const officialCodes = [
+    'EHBD1001',
+    'EARNHUB20',
+    (store.settings as any)?.defaultReferralCode,
+  ].filter(Boolean).map((c: string) => c.toUpperCase());
+
+  if (officialCodes.includes(cleanRefCode)) {
+    return res.json({
+      valid: true,
+      isOfficial: true,
+      sponsorName: 'Official System Sponsor (হেড অফিস)',
+      sponsorRole: 'Head Office',
+    });
+  }
+
+  const uplineUser = store.users.find(
+    u => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
+  );
+
+  if (!uplineUser) {
+    return res.json({
+      valid: false,
+      message: 'ভুয়া বা অস্তিত্বহীন রেফার কোড! ডাটাবেসে এই রেফার কোডের কোনো ইউজার নেই।',
+    });
+  }
+
+  if (uplineUser.status === 'suspended') {
+    return res.json({
+      valid: false,
+      message: 'এই রেফারারের অ্যাকাউন্ট সাময়িকভাবে স্থগিত বা নিষ্ক্রিয় রয়েছে।',
+    });
+  }
+
+  const maskedPhone = uplineUser.phone.length >= 11
+    ? uplineUser.phone.slice(0, 3) + '****' + uplineUser.phone.slice(-4)
+    : uplineUser.phone;
+
+  return res.json({
+    valid: true,
+    isOfficial: false,
+    sponsorName: (uplineUser as any).name ? (uplineUser as any).name : `সক্রিয় মেম্বার (${maskedPhone})`,
+    sponsorPhone: maskedPhone,
+    sponsorRole: uplineUser.role || 'Member',
+  });
+});
+
 // Register
 router.post('/auth/register', authRateLimiter, (req: Request, res: Response) => {
   const { phone, password, referralCode, deviceFingerprint } = req.body;
@@ -164,7 +220,7 @@ router.post('/auth/register', authRateLimiter, (req: Request, res: Response) => 
     return res.status(400).json({ error: 'এই মোবাইল নম্বরটি দিয়ে ইতিমধ্যে অ্যাকাউন্ট খোলা হয়েছে।' });
   }
 
-  // Referral code validation (MANDATORY: cannot create account without valid referral code)
+  // Referral code validation (MANDATORY: strictly block fake or nonexistent referral codes)
   if (!referralCode || !referralCode.trim()) {
     return res.status(400).json({
       error: 'রেফার কোড আবশ্যক! রেফার কোড ছাড়া অ্যাকাউন্ট তৈরি করা সম্ভব নয়।',
@@ -172,12 +228,32 @@ router.post('/auth/register', authRateLimiter, (req: Request, res: Response) => 
   }
 
   const cleanRefCode = referralCode.trim().toUpperCase();
-  const uplineUser = store.users.find(u => u.referralCode.toUpperCase() === cleanRefCode);
-  const isOfficialCode = cleanRefCode === 'EHBD1001' || cleanRefCode === 'EARNHUB20';
+  const officialCodes = [
+    'EHBD1001',
+    'EARNHUB20',
+    (store.settings as any)?.defaultReferralCode,
+  ].filter(Boolean).map((c: string) => c.toUpperCase());
+  const isOfficialCode = officialCodes.includes(cleanRefCode);
+
+  const uplineUser = store.users.find(
+    u => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
+  );
 
   if (!uplineUser && !isOfficialCode) {
     return res.status(400).json({
-      error: 'ভুল বা নিষ্ক্রিয় রেফার কোড। অনুগ্রহ করে সঠিক ও সক্রিয় রেফার কোড দিন।',
+      error: 'ভুয়া বা অস্তিত্বহীন রেফার কোড! শুধুমাত্র ডাটাবেসের বৈধ ও সক্রিয় ইউজারের রেফার কোড গ্রহণযোগ্য।',
+    });
+  }
+
+  if (uplineUser && uplineUser.status === 'suspended') {
+    return res.status(400).json({
+      error: 'এই রেফার কোডের মালিকের অ্যাকাউন্টটি সাময়িকভাবে স্থগিত বা নিষ্ক্রিয় রয়েছে। অনুগ্রহ করে অন্য সক্রিয় রেফার কোড ব্যবহার করুন।',
+    });
+  }
+
+  if (uplineUser && uplineUser.phone === normalizedPhone) {
+    return res.status(400).json({
+      error: 'নিজের মোবাইল নম্বর বা নিজের রেফার কোড দিয়ে রেফারেল একাউন্ট খোলা সম্ভব নয়।',
     });
   }
 
