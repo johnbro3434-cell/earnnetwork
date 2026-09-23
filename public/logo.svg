@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="enBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#0B1329"/>
+      <stop offset="50%" stopColor="#060C1B"/>
+      <stop offset="100%" stopColor="#020610"/>
+    </linearGradient>
+
+    <!-- Emerald Teal Vibrant Gradient -->
+    <linearGradient id="enEmeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#34D399"/>
+      <stop offset="50%" stopColor="#10B981"/>
+      <stop offset="100%" stopColor="#059669"/>
+    </linearGradient>
+
+    <!-- Cyan Electric Gradient -->
+    <linearGradient id="enCyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#38BDF8"/>
+      <stop offset="100%" stopColor="#0284C7"/>
+    </linearGradient>
+
+    <!-- Warm Gold Gradient for Earning Nodes -->
+    <linearGradient id="enGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FDE047"/>
+      <stop offset="50%" stopColor="#F59E0B"/>
+      <stop offset="100%" stopColor="#D97706"/>
+    </linearGradient>
+
+    <!-- Border Ring Gradient -->
+    <linearGradient id="enRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#34D399" stop-opacity="0.8"/>
+      <stop offset="50%" stopColor="#38BDF8" stop-opacity="0.4"/>
+      <stop offset="100%" stopColor="#F59E0B" stop-opacity="0.7"/>
+    </linearGradient>
+
+    <!-- Soft Glow Filter -->
+    <filter id="enGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Icon Squircle Shell -->
+  <rect x="5" y="5" width="110" height="110" rx="30" fill="url(#enBgGrad)" stroke="url(#enRingGrad)" stroke-width="2.5"/>
+
+  <!-- Subtle Inner Grid / Hex Network Backdrop -->
+  <path d="M60 20 L94 40 L94 80 L60 100 L26 80 L26 40 Z" fill="none" stroke="#10B981" stroke-opacity="0.12" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+  <!-- Network Interconnection Paths -->
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <line x1="36" y1="42" x2="60" y2="28" stroke="#34D399" stroke-opacity="0.4" stroke-width="2"/>
+    <line x1="60" y1="28" x2="84" y2="42" stroke="#38BDF8" stroke-opacity="0.4" stroke-width="2"/>
+    <line x1="84" y1="42" x2="84" y2="78" stroke="#F59E0B" stroke-opacity="0.4" stroke-width="2"/>
+    <line x1="84" y1="78" x2="60" y2="92" stroke="#34D399" stroke-opacity="0.4" stroke-width="2"/>
+    <line x1="60" y1="92" x2="36" y2="78" stroke="#38BDF8" stroke-opacity="0.4" stroke-width="2"/>
+    <line x1="36" y1="78" x2="36" y2="42" stroke="#10B981" stroke-opacity="0.4" stroke-width="2"/>
+  </g>
+
+  <!-- Dynamic Stylized "EN" Central Monogram -->
+  <g filter="url(#enGlow)">
+    <!-- 'E' Structure -->
+    <!-- Vertical Spine -->
+    <rect x="34" y="32" width="10" height="56" rx="5" fill="url(#enEmeraldGrad)"/>
+
+    <!-- Top Wing -->
+    <rect x="34" y="32" width="46" height="10" rx="5" fill="url(#enEmeraldGrad)"/>
+
+    <!-- Middle Connector / Network Link -->
+    <rect x="34" y="55" width="34" height="9.5" rx="4.75" fill="url(#enEmeraldGrad)"/>
+
+    <!-- Bottom Wing -->
+    <rect x="34" y="78" width="46" height="10" rx="5" fill="url(#enEmeraldGrad)"/>
+
+    <!-- 'N' Network Diagonal Ribbon -->
+    <path d="M56 36 L86 80 L76 84 L46 40 Z" fill="url(#enCyanGrad)" opacity="0.95"/>
+    <rect x="76" y="32" width="10" height="56" rx="5" fill="url(#enCyanGrad)"/>
+
+    <!-- Upward Growth Arrow (Earning Momentum) -->
+    <path d="M74 26 L94 26 L94 46" fill="none" stroke="url(#enGoldGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="94" y1="26" x2="66" y2="54" stroke="url(#enGoldGrad)" stroke-width="4.5" stroke-linecap="round"/>
+
+    <!-- Connected Earning Coin Nodes -->
+    <circle cx="94" cy="26" r="6" fill="url(#enGoldGrad)"/>
+    <circle cx="34" cy="32" r="5" fill="url(#enEmeraldGrad)"/>
+    <circle cx="34" cy="88" r="5" fill="url(#enEmeraldGrad)"/>
+    <circle cx="86" cy="88" r="5" fill="url(#enCyanGrad)"/>
+    <circle cx="68" cy="60" r="4" fill="#FFFFFF"/>
+  </g>
+</svg>

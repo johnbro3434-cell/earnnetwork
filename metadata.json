@@ -1,0 +1,6 @@
+{
+  "name": "EarnNetwork BD",
+  "description": "EarnNetwork BD (earnnetworkbd.com) - 100% Trusted micro-task earning platform featuring real-time bKash/Nagad transactions, video tasks, multi-tier referral bonuses, and enterprise security.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
