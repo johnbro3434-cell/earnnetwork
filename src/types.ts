@@ -278,6 +278,7 @@ export interface VideoTask {
   category: string;
   requiredPackageId?: string;
   enabled?: boolean;
+  isCompletedToday?: boolean;
   createdAt?: string;
 }
 

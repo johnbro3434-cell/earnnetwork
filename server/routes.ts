@@ -632,6 +632,8 @@ router.get('/tasks/today', authenticateUser, async (req: Request, res: Response)
   const totalAllowed = pkg.videosPerDay;
   const remainingCount = Math.max(0, totalAllowed - completedCount);
 
+  const completedTaskIds = new Set(todayTasks.map(th => th.taskId));
+
   // Return available video tasks
   return res.json({
     tasksDisabled: false,
@@ -644,6 +646,7 @@ router.get('/tasks/today', authenticateUser, async (req: Request, res: Response)
       ...vt,
       durationSeconds: 10, // Strictly locked to 10 seconds!
       rewardAmount: pkg.incomePerVideo,
+      isCompletedToday: completedTaskIds.has(vt.id),
     })),
   });
 });

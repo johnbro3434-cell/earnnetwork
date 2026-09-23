@@ -169,7 +169,10 @@ export const AppStoreModel = mongoose.models.AppStore || mongoose.model('AppStor
  * Loads the platform state from MongoDB Atlas
  */
 export async function loadStoreFromMongo(): Promise<any | null> {
-  if (!isConnected) return null;
+  if (!isConnected) {
+    const ok = await connectMongoDB();
+    if (!ok) return null;
+  }
   try {
     const doc: any = await AppStoreModel.findOne({ key: 'main_state' }).lean();
     if (doc && doc.data && typeof doc.data === 'object') {

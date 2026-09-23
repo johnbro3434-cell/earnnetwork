@@ -142,7 +142,10 @@ var AppStoreSchema = new mongoose.Schema(
 );
 var AppStoreModel = mongoose.models.AppStore || mongoose.model("AppStore", AppStoreSchema);
 async function loadStoreFromMongo() {
-  if (!isConnected) return null;
+  if (!isConnected) {
+    const ok = await connectMongoDB();
+    if (!ok) return null;
+  }
   try {
     const doc = await AppStoreModel.findOne({ key: "main_state" }).lean();
     if (doc && doc.data && typeof doc.data === "object") {
@@ -2448,6 +2451,7 @@ router.get("/tasks/today", authenticateUser, async (req, res) => {
   const completedCount = todayTasks.length;
   const totalAllowed = pkg.videosPerDay;
   const remainingCount = Math.max(0, totalAllowed - completedCount);
+  const completedTaskIds = new Set(todayTasks.map((th) => th.taskId));
   return res.json({
     tasksDisabled: false,
     package: pkg,
@@ -2459,7 +2463,8 @@ router.get("/tasks/today", authenticateUser, async (req, res) => {
       ...vt,
       durationSeconds: 10,
       // Strictly locked to 10 seconds!
-      rewardAmount: pkg.incomePerVideo
+      rewardAmount: pkg.incomePerVideo,
+      isCompletedToday: completedTaskIds.has(vt.id)
     }))
   });
 });

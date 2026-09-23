@@ -66,7 +66,9 @@ export function VideoTasksView() {
       const res = await apiRequest('/api/tasks/today');
       setTaskData(res);
       if (res.tasks && res.tasks.length > 0 && !activeTask) {
-        setActiveTask(res.tasks[0]);
+        // Prefer first pending task if any, otherwise first task
+        const pendingTask = res.tasks.find((t: any) => !t.isCompletedToday);
+        setActiveTask(pendingTask || res.tasks[0]);
       }
     } catch (err: any) {
       if (!isRetry) {
@@ -472,40 +474,55 @@ export function VideoTasksView() {
           </h4>
           <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
             {taskData?.tasks?.map((task: any, index: number) => {
-              const isCurrent = activeTask?.id === task.id;
-              return (
-                <div
-                  key={task.id}
-                  onClick={() => {
-                    if (!isPlaying) {
-                      setActiveTask(task);
-                      setCountdown(10);
-                      setIsCompleted(false);
-                    }
-                  }}
-                  className={`p-3 rounded-2xl border transition-all duration-200 flex items-center gap-3 cursor-pointer ${
-                    isCurrent
-                      ? 'glass-card border-purple-500/50 bg-purple-500/10 text-white shadow-lg shadow-purple-950/30'
-                      : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.08] hover:border-white/20 text-slate-300'
-                  }`}
-                >
-                  <div className="w-14 h-10 rounded-xl overflow-hidden shrink-0 bg-white/[0.05] border border-white/10">
-                    <img
-                      src={task.thumbnailUrl}
-                      alt={task.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="text-xs font-bold truncate">{task.title}</h5>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
-                      <span>10s Duration</span>
-                      <span>•</span>
-                      <span className="text-emerald-300 font-semibold">৳{task.rewardAmount} TK</span>
+                const isCurrent = activeTask?.id === task.id;
+                const isTaskCompleted = Boolean(task.isCompletedToday);
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => {
+                      if (!isPlaying) {
+                        setActiveTask(task);
+                        setCountdown(10);
+                        setIsCompleted(false);
+                      }
+                    }}
+                    className={`p-3 rounded-2xl border transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+                      isCurrent
+                        ? 'glass-card border-purple-500/50 bg-purple-500/10 text-white shadow-lg shadow-purple-950/30'
+                        : isTaskCompleted
+                        ? 'bg-emerald-950/20 border-emerald-500/30 text-slate-300 opacity-80'
+                        : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.08] hover:border-white/20 text-slate-300'
+                    }`}
+                  >
+                    <div className="w-14 h-10 rounded-xl overflow-hidden shrink-0 bg-white/[0.05] border border-white/10 relative">
+                      <img
+                        src={task.thumbnailUrl}
+                        alt={task.title}
+                        className="w-full h-full object-cover"
+                      />
+                      {isTaskCompleted && (
+                        <div className="absolute inset-0 bg-emerald-950/70 backdrop-blur-[1px] flex items-center justify-center">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h5 className="text-xs font-bold truncate">{task.title}</h5>
+                        {isTaskCompleted && (
+                          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                        <span>10s Duration</span>
+                        <span>•</span>
+                        <span className="text-emerald-300 font-semibold">৳{task.rewardAmount} TK</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
+                );
             })}
           </div>
         </div>
