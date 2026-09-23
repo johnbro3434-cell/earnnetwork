@@ -17,6 +17,7 @@ export const authRateLimiter = rateLimit({
   max: 30, // Limit each IP to 30 authentication attempts per window
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: {
     error: 'অতিরিক্ত চেষ্টা করা হয়েছে। অনুগ্রহ করে ১৫ মিনিট পর পুনরায় চেষ্টা করুন (Rate Limit Exceeded).',
   },
@@ -28,6 +29,7 @@ export const financialRateLimiter = rateLimit({
   max: 20, // Max 20 money actions per minute
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: {
     error: 'অত্যধিক দ্রুত অনুরোধ করা হয়েছে। অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন।',
   },
@@ -39,6 +41,7 @@ export const globalApiLimiter = rateLimit({
   max: 1500, // Max 1500 requests per 15 mins per IP
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: {
     error: 'অতিরিক্ত অনুরোধ সনাক্ত হয়েছে। কিছু সময় পর পুনরায় চেষ্টা করুন।',
   },

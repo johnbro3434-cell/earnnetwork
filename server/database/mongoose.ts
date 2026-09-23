@@ -17,18 +17,20 @@ const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || '';
 let isConnected = false;
 let isConnecting = false;
 let lastAttempt = 0;
-const RETRY_COOLDOWN_MS = 5 * 60 * 1000; // 5 minute cooldown before retrying if unreachable
+const RETRY_COOLDOWN_MS = 10 * 1000; // 10 second cooldown before retrying
 
 export async function connectMongoDB(): Promise<boolean> {
-  if (isConnected) return true;
-  if (!MONGODB_URI) {
+  if (isConnected && mongoose.connection.readyState === 1) return true;
+
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URL || '';
+  if (!uri) {
     return false;
   }
 
   // Prevent concurrent connection attempts
   if (isConnecting) return false;
 
-  // Don't hammer the database if previous attempt timed out / was blocked by IP whitelist
+  // Don't hammer the database if previous attempt timed out recently
   if (Date.now() - lastAttempt < RETRY_COOLDOWN_MS) {
     return false;
   }
@@ -39,11 +41,11 @@ export async function connectMongoDB(): Promise<boolean> {
   try {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 5,
-      serverSelectionTimeoutMS: 2500,
-      connectTimeoutMS: 2500,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
     };
-    await mongoose.connect(MONGODB_URI, opts);
+    await mongoose.connect(uri, opts);
     isConnected = true;
     console.log('[Database] Successfully connected to MongoDB Atlas cluster.');
     return true;

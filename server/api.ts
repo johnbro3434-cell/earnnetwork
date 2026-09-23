@@ -1,13 +1,14 @@
 import express from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import routes from '../server/routes';
-import { connectMongoDB } from '../server/database/mongoose';
-import { initMongoSync } from '../server/db';
+import routes from './routes';
+import { connectMongoDB } from './database/mongoose';
+import { initMongoSync } from './db';
 import {
   applySecurityHeaders,
   sanitizeRequestData,
   globalApiLimiter,
-} from '../server/security';
+} from './security';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,6 +17,9 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+// Enable CORS for cross-origin or same-domain requests
+app.use(cors({ origin: true, credentials: true }));
+
 // Apply enterprise security headers & anti-injection sanitization
 app.use(applySecurityHeaders);
 app.use(sanitizeRequestData);
@@ -23,10 +27,10 @@ app.use(sanitizeRequestData);
 // Initialize MongoDB Atlas connection if available
 connectMongoDB()
   .then((connected) => {
-    if (connected) initMongoSync();
+    if (connected) initMongoSync().catch(() => {});
   })
   .catch((err) => {
-    console.warn('[Database] Optional MongoDB Atlas init deferred:', err.message);
+    console.warn('[Database] Optional MongoDB Atlas init deferred:', err?.message);
   });
 
 let hasHydratedMongo = false;
@@ -37,7 +41,7 @@ app.use(async (req, res, next) => {
     const connected = await connectMongoDB();
     if (connected && !hasHydratedMongo) {
       hasHydratedMongo = true;
-      await initMongoSync();
+      initMongoSync().catch(() => {});
     }
   } catch (e) {
     // continue with local persistence if DB unavailable
@@ -53,29 +57,31 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check endpoints
+const healthHandler = (req: express.Request, res: express.Response) => {
   res.json({
     status: 'ok',
     service: 'EarnNetwork BD (earnnetworkbd.com)',
     version: 'v20.0.0-enterprise',
+    time: new Date().toISOString(),
   });
-});
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
 
-// Mount routes
+// Mount routes on both /api and root
 app.use('/api', routes);
 app.use('/', routes);
 
-// Database offline error fallback
+// Universal safe error-handling middleware to prevent FUNCTION_INVOCATION_FAILED
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err && (err.name === 'MongooseError' || err.name === 'MongoNetworkError' || (err.message && err.message.includes('buffering timed out')))) {
-    console.warn('[AI Studio] Database offline — returning mock empty response');
-    if (req.method === 'GET') {
-      return res.json(req.path.endsWith('s') || req.path.endsWith('s/') ? [] : {});
-    }
-    return res.status(503).json({ error: 'Service temporarily unavailable (database offline)' });
+  console.error('[API Runtime Error]:', err?.message || err);
+  if (res.headersSent) {
+    return next(err);
   }
-  next(err);
+  return res.status(err?.status || 500).json({
+    error: err?.message || 'একটি সার্ভার ত্রুটি ঘটেছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।',
+  });
 });
 
 export default app;

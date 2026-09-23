@@ -725,10 +725,14 @@ let store: StoreData = {
 
 // Seed initial users with bcrypt hashes
 function initializeSeedData() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch (e) {}
+    }
+  } catch (e) {}
 
   if (fs.existsSync(DATA_FILE)) {
     try {
