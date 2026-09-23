@@ -1152,6 +1152,8 @@ function initializeSeedData() {
 function getStore() {
   return store;
 }
+var isStoreHydratedFromMongo = false;
+var mongoHydrationPromise = null;
 function saveStore() {
   try {
     const dir = path.dirname(DATA_FILE);
@@ -1161,30 +1163,45 @@ function saveStore() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
   } catch (e) {
   }
-  syncStoreToMongo(store).catch((e) => {
-    console.warn("[Database] Sync to MongoDB Atlas error:", e?.message);
-  });
+  if (isStoreHydratedFromMongo) {
+    syncStoreToMongo(store).catch((e) => {
+      console.warn("[Database] Sync to MongoDB Atlas error:", e?.message);
+    });
+  } else {
+    initMongoSync().then(() => {
+      syncStoreToMongo(store).catch(() => {
+      });
+    }).catch(() => {
+    });
+  }
 }
 async function initMongoSync() {
-  try {
-    const mongoData = await loadStoreFromMongo();
-    if (mongoData && typeof mongoData === "object" && Array.isArray(mongoData.users)) {
-      store = {
-        ...store,
-        ...mongoData
-      };
-      console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
-      try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
-      } catch (e) {
+  if (isStoreHydratedFromMongo) return;
+  if (mongoHydrationPromise) return mongoHydrationPromise;
+  mongoHydrationPromise = (async () => {
+    try {
+      const mongoData = await loadStoreFromMongo();
+      if (mongoData && typeof mongoData === "object" && Array.isArray(mongoData.users)) {
+        store = {
+          ...store,
+          ...mongoData
+        };
+        isStoreHydratedFromMongo = true;
+        console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
+        try {
+          fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
+        } catch (e) {
+        }
+      } else {
+        isStoreHydratedFromMongo = true;
+        console.log("[Database] Seeding initial platform state to MongoDB Atlas...");
+        await syncStoreToMongo(store);
       }
-    } else {
-      console.log("[Database] Seeding initial platform state to MongoDB Atlas...");
-      await syncStoreToMongo(store);
+    } catch (err) {
+      console.warn("[Database] Error initializing MongoDB state sync:", err?.message);
     }
-  } catch (err) {
-    console.warn("[Database] Error initializing MongoDB state sync:", err?.message);
-  }
+  })();
+  return mongoHydrationPromise;
 }
 function recordWalletLedgerEntry(entry) {
   const currentStore = getStore();
@@ -5863,14 +5880,11 @@ connectMongoDB().then((connected) => {
 }).catch((err) => {
   console.warn("[Database] Optional MongoDB Atlas init deferred:", err?.message);
 });
-var hasHydratedMongo = false;
 app.use(async (req, res, next) => {
   try {
     const connected = await connectMongoDB();
-    if (connected && !hasHydratedMongo) {
-      hasHydratedMongo = true;
-      initMongoSync().catch(() => {
-      });
+    if (connected) {
+      await initMongoSync();
     }
   } catch (e) {
   }

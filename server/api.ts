@@ -33,15 +33,12 @@ connectMongoDB()
     console.warn('[Database] Optional MongoDB Atlas init deferred:', err?.message);
   });
 
-let hasHydratedMongo = false;
-
-// Middleware to ensure DB connection on serverless cold starts
+// Middleware to ensure DB connection and hydration BEFORE any route runs on serverless cold starts
 app.use(async (req, res, next) => {
   try {
     const connected = await connectMongoDB();
-    if (connected && !hasHydratedMongo) {
-      hasHydratedMongo = true;
-      initMongoSync().catch(() => {});
+    if (connected) {
+      await initMongoSync();
     }
   } catch (e) {
     // continue with local persistence if DB unavailable

@@ -1049,6 +1049,13 @@ export function getStore(): StoreData {
   return store;
 }
 
+let isStoreHydratedFromMongo = false;
+let mongoHydrationPromise: Promise<void> | null = null;
+
+export function isStoreHydrated(): boolean {
+  return isStoreHydratedFromMongo;
+}
+
 export function saveStore() {
   try {
     const dir = path.dirname(DATA_FILE);
@@ -1060,37 +1067,53 @@ export function saveStore() {
     // In serverless / read-only filesystem environments, file write may fail gracefully
   }
 
-  // Always sync to MongoDB Atlas when connected
-  syncStoreToMongo(store).catch((e) => {
-    console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
-  });
+  // Safety protection: Do not overwrite MongoDB Atlas with un-hydrated local data on cold deploy
+  if (isStoreHydratedFromMongo) {
+    syncStoreToMongo(store).catch((e) => {
+      console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
+    });
+  } else {
+    // If not hydrated yet, ensure hydration first before writing back
+    initMongoSync().then(() => {
+      syncStoreToMongo(store).catch(() => {});
+    }).catch(() => {});
+  }
 }
 
 /**
  * Initializes and synchronizes store with MongoDB Atlas
  */
-export async function initMongoSync() {
-  try {
-    const mongoData = await loadStoreFromMongo();
-    if (mongoData && typeof mongoData === 'object' && Array.isArray(mongoData.users)) {
-      // Hydrate in-memory store from MongoDB Atlas
-      store = {
-        ...store,
-        ...mongoData,
-      };
-      console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
-      // Also update local cache
-      try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), 'utf-8');
-      } catch (e) {}
-    } else {
-      // First-time seed into MongoDB Atlas
-      console.log('[Database] Seeding initial platform state to MongoDB Atlas...');
-      await syncStoreToMongo(store);
+export async function initMongoSync(): Promise<void> {
+  if (isStoreHydratedFromMongo) return;
+  if (mongoHydrationPromise) return mongoHydrationPromise;
+
+  mongoHydrationPromise = (async () => {
+    try {
+      const mongoData = await loadStoreFromMongo();
+      if (mongoData && typeof mongoData === 'object' && Array.isArray(mongoData.users)) {
+        // Hydrate in-memory store from MongoDB Atlas
+        store = {
+          ...store,
+          ...mongoData,
+        };
+        isStoreHydratedFromMongo = true;
+        console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
+        // Also update local cache if filesystem allows
+        try {
+          fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), 'utf-8');
+        } catch (e) {}
+      } else {
+        // First-time seed into MongoDB Atlas
+        isStoreHydratedFromMongo = true;
+        console.log('[Database] Seeding initial platform state to MongoDB Atlas...');
+        await syncStoreToMongo(store);
+      }
+    } catch (err: any) {
+      console.warn('[Database] Error initializing MongoDB state sync:', err?.message);
     }
-  } catch (err: any) {
-    console.warn('[Database] Error initializing MongoDB state sync:', err?.message);
-  }
+  })();
+
+  return mongoHydrationPromise;
 }
 
 /**

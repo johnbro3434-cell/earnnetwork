@@ -1,6 +1,44 @@
 {
-  "users": [],
-  "wallets": [],
+  "users": [
+    {
+      "id": "user_01711111111",
+      "phone": "01711111111",
+      "passwordHash": "$2b$10$rbeLzbxjw/nL9F5COnv38OrSr0UlVgiVMUBNaWtBrb9.kPPIjSXGO",
+      "role": "Member",
+      "referralCode": "EHBD1001",
+      "referredBy": "EARNHUB20",
+      "createdAt": "2026-09-23T20:20:53.009Z",
+      "status": "active",
+      "isTrial": false,
+      "trialDaysUsed": 4,
+      "trialTotalEarned": 100,
+      "trialMissedDays": 0,
+      "trialExpired": true,
+      "freeWithdrawAllowed": true,
+      "activePackageId": "pkg_bronze",
+      "packageActivatedAt": "2026-09-23T20:20:53.010Z",
+      "withdrawSetupDone": true,
+      "withdrawMethod": "bKash",
+      "withdrawNumber": "01711111111",
+      "withdrawPasswordHash": "$2b$10$rbeLzbxjw/nL9F5COnv38Oqdlms2f0ZZVHeNhJSf2YV23ArbEy93u",
+      "deviceFingerprint": "fp_demo_user_01",
+      "lastLoginAt": "2026-09-23T20:21:13.753Z",
+      "lastLoginIp": "::ffff:127.0.0.1"
+    }
+  ],
+  "wallets": [
+    {
+      "id": "wal_user_01711111111",
+      "userId": "user_01711111111",
+      "balance": 500,
+      "totalEarned": 100,
+      "totalWithdrawn": 0,
+      "pendingWithdraw": 0,
+      "dailyTaskIncome": 100,
+      "referralIncome": 0,
+      "updatedAt": "2026-09-23T20:20:53.010Z"
+    }
+  ],
   "transactions": [
     {
       "id": "tx_1790092125310_642",
@@ -995,7 +1033,188 @@
       "tasksDisabled": true
     }
   ],
-  "notifications": [],
+  "notifications": [
+    {
+      "id": "notif_1790092125333",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳1,000 has been received via bKash (TrxID: AUDIT816071). Current Wallet Balance: ৳14,100 at 03:48:45 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:48:45.338Z"
+    },
+    {
+      "id": "notif_1790092113958",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳1,000 has been received via bKash (TrxID: AUDIT857127). Current Wallet Balance: ৳13,100 at 03:48:33 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:48:33.962Z"
+    },
+    {
+      "id": "notif_1790092104248",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳1,000 has been received via bKash (TrxID: AUDIT303398). Current Wallet Balance: ৳12,100 at 03:48:24 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:48:24.252Z"
+    },
+    {
+      "id": "notif_1790092095677",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳1,000 has been received via bKash (TrxID: AUDIT956091). Current Wallet Balance: ৳11,100 at 03:48:15 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:48:15.681Z"
+    },
+    {
+      "id": "notif_1790091712838",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳2,500 has been received via bKash (TrxID: AUTO821584). Current Wallet Balance: ৳10,100 at 03:41:52 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:41:52.842Z"
+    },
+    {
+      "id": "notif_1790091679461",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳500 has been received via bKash (TrxID: AUTO982803). Current Wallet Balance: ৳7,600 at 03:41:19 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:41:19.466Z"
+    },
+    {
+      "id": "notif_1790090820435",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳1,000 has been received via bKash (TrxID: TEST237294). Current Wallet Balance: ৳7,100 at 03:27:00 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:27:00.439Z"
+    },
+    {
+      "id": "notif_1790090806591",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Verified",
+      "message": "Deposit Verified! ৳1,000 has been received via bKash (TrxID: TEST786571). Current Wallet Balance: ৳6,100 at 03:26:46 PM.",
+      "isRead": false,
+      "createdAt": "2026-09-22T15:26:46.596Z"
+    },
+    {
+      "id": "notif_1790088733354",
+      "userId": "user_1790088731395",
+      "type": "deposit",
+      "title": "Deposit Verified ⚡",
+      "message": "Your deposit of ৳500 via bKash has been verified automatically! Wallet balance updated.",
+      "isRead": false,
+      "createdAt": "2026-09-22T14:52:13.364Z"
+    },
+    {
+      "id": "notif_welcome",
+      "userId": "user_01711111111",
+      "type": "task",
+      "title": "Daily Tasks Reset at 12:00 AM",
+      "message": "Your Golden Package video tasks are ready! Complete 10 videos (10s each) to earn 250 TK today.",
+      "isRead": false,
+      "createdAt": "2026-09-22T14:25:30.099Z"
+    },
+    {
+      "id": "notif_1790088731396",
+      "userId": "user_1790088731395",
+      "type": "task",
+      "title": "Welcome to EarnHub BD V20 Enterprise!",
+      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
+      "isRead": false,
+      "createdAt": "2026-09-22T14:52:11.396Z"
+    },
+    {
+      "id": "notif_1790095612320",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Approved (স্বয়ংক্রিয় গেটওয়ে)",
+      "message": "আপনার bKash অ্যাকাউন্টের মাধ্যমে ৳1,000 ইনস্ট্যান্ট ওয়ালেটে যোগ হয়েছে। TrxID: BK156524788",
+      "isRead": false,
+      "createdAt": "2026-09-22T16:46:52.326Z"
+    },
+    {
+      "id": "notif_1790157174723",
+      "userId": "user_01711111111",
+      "type": "gift",
+      "title": "Wallet Balance Added by Admin",
+      "message": "50 TK has been added to your wallet. Reason: Test validation bonus.",
+      "isRead": false,
+      "createdAt": "2026-09-23T09:52:54.723Z"
+    },
+    {
+      "id": "notif_1790157174729",
+      "userId": "user_01711111111",
+      "type": "deposit",
+      "title": "Deposit Approved!",
+      "message": "Your bKash deposit of 1500 TK has been approved and added to your wallet balance.",
+      "isRead": false,
+      "createdAt": "2026-09-23T09:52:54.729Z"
+    },
+    {
+      "id": "notif_1790160251916",
+      "userId": "user_1790160251916",
+      "type": "task",
+      "title": "Welcome to EarnNetwork BD!",
+      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
+      "isRead": false,
+      "createdAt": "2026-09-23T10:44:11.916Z"
+    },
+    {
+      "id": "notif_1790160267294",
+      "userId": "user_1790160267294",
+      "type": "task",
+      "title": "Welcome to EarnNetwork BD!",
+      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
+      "isRead": false,
+      "createdAt": "2026-09-23T10:44:27.294Z"
+    },
+    {
+      "id": "notif_1790160315258",
+      "userId": "user_1790160315258",
+      "type": "task",
+      "title": "Welcome to EarnNetwork BD!",
+      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
+      "isRead": false,
+      "createdAt": "2026-09-23T10:45:15.258Z"
+    },
+    {
+      "id": "notif_1790160347004",
+      "userId": "user_1790160347003",
+      "type": "task",
+      "title": "Welcome to EarnNetwork BD!",
+      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
+      "isRead": false,
+      "createdAt": "2026-09-23T10:45:47.004Z"
+    },
+    {
+      "id": "notif_1790160936506",
+      "userId": "user_1790160347003",
+      "type": "deposit",
+      "title": "Deposit Approved!",
+      "message": "Your bKash deposit of 500 TK has been approved and added to your wallet balance.",
+      "isRead": false,
+      "createdAt": "2026-09-23T10:55:36.506Z"
+    },
+    {
+      "id": "notif_1790189264202",
+      "userId": "user_1790189264201",
+      "type": "task",
+      "title": "Welcome to EarnNetwork BD!",
+      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
+      "isRead": false,
+      "createdAt": "2026-09-23T18:47:44.202Z"
+    }
+  ],
   "settings": {
     "websiteName": "EarnNetwork BD",
     "tagline": "Leading Digital Micro-Task Platform in Bangladesh (earnnetworkbd.com)",
@@ -1121,7 +1340,73 @@
       "timestamp": "2026-09-23T11:27:09.438Z"
     }
   ],
-  "deviceFingerprints": [],
+  "deviceFingerprints": [
+    {
+      "deviceFingerprint": "fp_desktop_dhaka_01",
+      "associatedUserIds": [
+        "user_01711111111"
+      ],
+      "trialWithdrawalCompleted": true,
+      "trialWithdrawalDate": "2026-08-27T14:25:30.099Z",
+      "trialWithdrawalAmount": 100,
+      "lastSeenIp": "103.205.71.12",
+      "lastSeenAt": "2026-09-22T14:25:30.099Z"
+    },
+    {
+      "deviceFingerprint": "fp_1790088731395_4id6ekk",
+      "associatedUserIds": [
+        "user_1790088731395"
+      ],
+      "trialWithdrawalCompleted": false,
+      "lastSeenIp": "127.0.0.1",
+      "lastSeenAt": "2026-09-22T14:52:11.396Z"
+    },
+    {
+      "deviceFingerprint": "dev_fp_test_10326669",
+      "associatedUserIds": [
+        "user_1790160251916"
+      ],
+      "trialWithdrawalCompleted": false,
+      "lastSeenIp": "127.0.0.1",
+      "lastSeenAt": "2026-09-23T10:44:11.916Z"
+    },
+    {
+      "deviceFingerprint": "dev_fp_test_58096584",
+      "associatedUserIds": [
+        "user_1790160267294"
+      ],
+      "trialWithdrawalCompleted": false,
+      "lastSeenIp": "127.0.0.1",
+      "lastSeenAt": "2026-09-23T10:44:27.294Z"
+    },
+    {
+      "deviceFingerprint": "dev_fp_test_17463731",
+      "associatedUserIds": [
+        "user_1790160315258"
+      ],
+      "trialWithdrawalCompleted": false,
+      "lastSeenIp": "127.0.0.1",
+      "lastSeenAt": "2026-09-23T10:45:15.258Z"
+    },
+    {
+      "deviceFingerprint": "dev_fp_test_35402260",
+      "associatedUserIds": [
+        "user_1790160347003"
+      ],
+      "trialWithdrawalCompleted": false,
+      "lastSeenIp": "127.0.0.1",
+      "lastSeenAt": "2026-09-23T10:45:47.004Z"
+    },
+    {
+      "deviceFingerprint": "fp_bbbw5_32yp7",
+      "associatedUserIds": [
+        "user_1790189264201"
+      ],
+      "trialWithdrawalCompleted": false,
+      "lastSeenIp": "27.123.253.226, 169.254.169.126",
+      "lastSeenAt": "2026-09-23T18:47:44.201Z"
+    }
+  ],
   "supportTickets": [
     {
       "id": "tkt_1001",
