@@ -1114,105 +1114,37 @@ function initializeSeedData() {
     }
   ];
   store = {
-    users: [user1, user2, user3],
-    wallets: [wallet1, wallet2, wallet3],
-    transactions: [
-      {
-        id: "tx_01",
-        userId: user1.id,
-        type: "deposit",
-        amount: 7500,
-        description: "bKash Deposit Approved",
-        balanceAfter: 7500,
-        createdAt: new Date(Date.now() - 10 * 864e5).toISOString()
-      },
-      {
-        id: "tx_02",
-        userId: user1.id,
-        type: "package_purchase",
-        amount: -7500,
-        description: "Golden Package Purchase (10 Videos / 250 TK daily)",
-        balanceAfter: 0,
-        createdAt: new Date(Date.now() - 10 * 864e5 + 6e4).toISOString()
-      }
-    ],
+    users: [],
+    wallets: [],
+    transactions: [],
     packages: defaultPackages,
     withdrawCards: defaultWithdrawCards,
     salaryTiers: defaultSalaryTiers,
-    deposits: initialDeposits,
-    withdraws: initialWithdraws,
+    deposits: [],
+    withdraws: [],
     videoTasks: defaultVideoTasks,
     taskHistories: [],
     paymentNumbers: defaultPaymentNumbers,
     referralCommissions: [],
-    promoCodes: store.promoCodes,
+    promoCodes: store.promoCodes || [],
     campaigns: defaultCampaigns,
-    holidays: store.holidays,
-    notifications: [
-      {
-        id: "notif_welcome",
-        userId: user1.id,
-        type: "task",
-        title: "Daily Tasks Reset at 12:00 AM",
-        message: "Your Golden Package video tasks are ready! Complete 10 videos (10s each) to earn 250 TK today.",
-        isRead: false,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString()
-      }
-    ],
+    holidays: store.holidays || [],
+    notifications: [],
     settings: defaultSettings,
     cloudinarySettings: defaultCloudinary,
     adminUsers: [primaryAdmin],
     activityLogs: logs,
-    deviceFingerprints: deviceRecords,
-    supportTickets: defaultSupportTickets,
+    deviceFingerprints: [],
+    supportTickets: [],
     sliders: defaultSliders,
     roles: defaultRoles,
-    smsTransactions: defaultSmsTransactions,
-    verifyDevices: defaultVerifyDevices,
+    smsTransactions: [],
+    verifyDevices: [],
     mfsSettings: defaultMfsSettings,
     verificationLogs: [],
     fraudLogs: [],
-    walletTransactions: [
-      {
-        id: "wtx_seed_01",
-        userId: user1.id,
-        transactionType: "Deposit Verification",
-        amount: 7500,
-        balanceBefore: 0,
-        balanceAfter: 7500,
-        reason: "Deposit Verification",
-        referenceId: "dep_init_01",
-        createdBy: "SYSTEM",
-        status: "completed",
-        createdAt: new Date(Date.now() - 10 * 864e5).toISOString()
-      },
-      {
-        id: "wtx_seed_02",
-        userId: user1.id,
-        transactionType: "Package Purchase",
-        amount: -7500,
-        balanceBefore: 7500,
-        balanceAfter: 0,
-        reason: "Package Purchase",
-        referenceId: "pkg_golden",
-        createdBy: user1.id,
-        status: "completed",
-        createdAt: new Date(Date.now() - 10 * 864e5 + 6e4).toISOString()
-      }
-    ],
-    auditLogs: [
-      {
-        id: "audit_init_01",
-        adminId: "SYSTEM",
-        userId: user1.id,
-        action: "DEPOSIT_CREDIT",
-        oldBalance: 0,
-        newBalance: 7500,
-        reference: "dep_init_01",
-        ip: "127.0.0.1",
-        timestamp: new Date(Date.now() - 10 * 864e5).toISOString()
-      }
-    ],
+    walletTransactions: [],
+    auditLogs: [],
     apkVersions: defaultApkVersions
   };
   saveStore();
