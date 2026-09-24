@@ -341,12 +341,19 @@ export function VideoTasksView() {
             {activeTask && (
               <video
                 ref={videoRef}
-                src={activeTask.videoUrl}
+                src={activeTask.videoUrl || 'https://media.w3.org/2010/05/sintel/trailer.mp4'}
                 poster={activeTask.thumbnailUrl}
                 playsInline
                 preload="metadata"
                 muted={isMuted}
                 loop
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes('w3.org')) {
+                    target.src = 'https://media.w3.org/2010/05/sintel/trailer.mp4';
+                    target.play().catch(() => {});
+                  }
+                }}
                 className="w-full h-full object-cover"
               />
             )}

@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes';
 import { connectMongoDB } from './database/mongoose';
-import { initMongoSync } from './db';
+import { initMongoSync, flushStoreToMongo, reloadStoreFromMongoIfStale } from './db';
 import {
   applySecurityHeaders,
   sanitizeRequestData,
@@ -33,16 +33,53 @@ connectMongoDB()
     console.warn('[Database] Optional MongoDB Atlas init deferred:', err?.message);
   });
 
-// Middleware to ensure DB connection and hydration BEFORE any route runs on serverless cold starts
+// Pre-request middleware: ensure connection & latest state across all serverless instances
 app.use(async (req, res, next) => {
   try {
     const connected = await connectMongoDB();
     if (connected) {
-      await initMongoSync();
+      await reloadStoreFromMongoIfStale(req.method !== 'GET');
     }
   } catch (e) {
     // continue with local persistence if DB unavailable
   }
+  next();
+});
+
+// Response interceptor: guarantees MongoDB commit completes BEFORE Vercel freezes lambda
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  const originalSend = res.send.bind(res);
+
+  let hasFlushed = false;
+  const flushPersistence = async () => {
+    if (hasFlushed) return;
+    hasFlushed = true;
+    try {
+      await flushStoreToMongo();
+    } catch (e) {
+      console.warn('[Database] Flush on response deferred:', e);
+    }
+  };
+
+  res.json = function (body: any) {
+    flushPersistence()
+      .catch(() => {})
+      .finally(() => {
+        originalJson(body);
+      });
+    return res;
+  };
+
+  res.send = function (body: any) {
+    flushPersistence()
+      .catch(() => {})
+      .finally(() => {
+        originalSend(body);
+      });
+    return res;
+  };
+
   next();
 });
 

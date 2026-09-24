@@ -168,7 +168,7 @@ export const AppStoreModel = mongoose.models.AppStore || mongoose.model('AppStor
 /**
  * Loads the platform state from MongoDB Atlas
  */
-export async function loadStoreFromMongo(): Promise<any | null> {
+export async function loadStoreFromMongo(): Promise<{ data: any; updatedAt?: Date } | null> {
   if (!isConnected) {
     const ok = await connectMongoDB();
     if (!ok) return null;
@@ -176,10 +176,29 @@ export async function loadStoreFromMongo(): Promise<any | null> {
   try {
     const doc: any = await AppStoreModel.findOne({ key: 'main_state' }).lean();
     if (doc && doc.data && typeof doc.data === 'object') {
-      return doc.data;
+      return { data: doc.data, updatedAt: doc.updatedAt };
     }
   } catch (err: any) {
     console.warn('[Database] Failed to load store from MongoDB Atlas:', err?.message);
+  }
+  return null;
+}
+
+/**
+ * Gets the latest updatedAt timestamp of platform state in MongoDB Atlas
+ */
+export async function getMongoStoreTimestamp(): Promise<Date | null> {
+  if (!isConnected) {
+    const ok = await connectMongoDB();
+    if (!ok) return null;
+  }
+  try {
+    const doc: any = await AppStoreModel.findOne({ key: 'main_state' }, { updatedAt: 1 }).lean();
+    if (doc && doc.updatedAt) {
+      return new Date(doc.updatedAt);
+    }
+  } catch (err: any) {
+    // ignore
   }
   return null;
 }
@@ -194,9 +213,10 @@ export async function syncStoreToMongo(storeData: any): Promise<boolean> {
   }
 
   try {
+    const now = new Date();
     await AppStoreModel.updateOne(
       { key: 'main_state' },
-      { $set: { data: storeData, updatedAt: new Date() } },
+      { $set: { data: storeData, updatedAt: now } },
       { upsert: true }
     );
 
@@ -223,8 +243,10 @@ export async function syncStoreToMongo(storeData: any): Promise<boolean> {
       DepositModel.bulkWrite(depOps).catch(() => {});
     }
 
-    if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
-      const wOps = storeData.withdrawals.slice(0, 500).map((w: any) => ({
+    // Fix: withdraws collection sync
+    const withdrawList = storeData.withdraws || storeData.withdrawals;
+    if (Array.isArray(withdrawList) && withdrawList.length > 0) {
+      const wOps = withdrawList.slice(0, 500).map((w: any) => ({
         updateOne: {
           filter: { id: w.id },
           update: { $set: w },

@@ -296,7 +296,7 @@ const defaultVideoTasks: VideoTask[] = [
   {
     id: 'task_vid_1',
     title: 'Smart Tech BD Brand Spotlight 2026',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-screen-close-up-34241-large.mp4',
+    videoUrl: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=600&auto=format&fit=crop&q=80',
     durationSeconds: 10,
     rewardAmount: 25,
@@ -305,7 +305,7 @@ const defaultVideoTasks: VideoTask[] = [
   {
     id: 'task_vid_2',
     title: 'Green Agro Bangladesh Eco Project',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-man-working-on-a-computer-keyboard-40647-large.mp4',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80',
     durationSeconds: 10,
     rewardAmount: 25,
@@ -314,7 +314,7 @@ const defaultVideoTasks: VideoTask[] = [
   {
     id: 'task_vid_3',
     title: 'Digital Commerce Dhaka Logistics Review',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-finger-pointing-at-a-screen-with-graphs-34242-large.mp4',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
     durationSeconds: 10,
     rewardAmount: 25,
@@ -323,7 +323,7 @@ const defaultVideoTasks: VideoTask[] = [
   {
     id: 'task_vid_4',
     title: 'Fintech Innovation bKash & Nagad Integration',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-with-financial-data-28120-large.mp4',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80',
     durationSeconds: 10,
     rewardAmount: 25,
@@ -332,7 +332,7 @@ const defaultVideoTasks: VideoTask[] = [
   {
     id: 'task_vid_5',
     title: 'Enterprise Cloud Solutions Overview',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-a-laptop-keyboard-close-up-40646-large.mp4',
+    videoUrl: 'https://media.w3.org/2010/05/bunny/trailer.mp4',
     thumbnailUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&auto=format&fit=crop&q=80',
     durationSeconds: 10,
     rewardAmount: 25,
@@ -1051,9 +1051,34 @@ export function getStore(): StoreData {
 
 let isStoreHydratedFromMongo = false;
 let mongoHydrationPromise: Promise<void> | null = null;
+let isStoreDirty = false;
+let lastHydrationTimestamp = 0;
+let pendingSyncPromise: Promise<boolean> | null = null;
 
 export function isStoreHydrated(): boolean {
   return isStoreHydratedFromMongo;
+}
+
+export function markStoreDirty(): void {
+  isStoreDirty = true;
+}
+
+export function isStoreStateDirty(): boolean {
+  return isStoreDirty;
+}
+
+export async function flushStoreToMongo(): Promise<boolean> {
+  if (!isStoreDirty && !pendingSyncPromise) {
+    return true;
+  }
+  isStoreDirty = false;
+  pendingSyncPromise = syncStoreToMongo(store);
+  try {
+    const res = await pendingSyncPromise;
+    return res;
+  } finally {
+    pendingSyncPromise = null;
+  }
 }
 
 export async function saveStoreAsync(): Promise<boolean> {
@@ -1068,6 +1093,7 @@ export async function saveStoreAsync(): Promise<boolean> {
   }
 
   isStoreHydratedFromMongo = true;
+  isStoreDirty = false;
   return await syncStoreToMongo(store);
 }
 
@@ -1083,9 +1109,50 @@ export function saveStore() {
   }
 
   isStoreHydratedFromMongo = true;
-  syncStoreToMongo(store).catch((e) => {
+  isStoreDirty = true;
+  pendingSyncPromise = syncStoreToMongo(store);
+  pendingSyncPromise.catch((e) => {
     console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
   });
+}
+
+/**
+ * Re-hydrates store from MongoDB Atlas if data is stale or on mutating requests.
+ * Ensures multi-instance consistency in serverless environments.
+ */
+export async function reloadStoreFromMongoIfStale(force = false): Promise<void> {
+  const now = Date.now();
+  if (isStoreDirty) return; // Don't overwrite unsaved local modifications
+  if (!force && now - lastHydrationTimestamp < 1500) return; // 1.5s throttle for read queries
+
+  try {
+    const mongoResult = await loadStoreFromMongo();
+    if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
+      store = {
+        ...store,
+        ...mongoResult.data,
+      };
+
+      // Auto-migrate any broken mixkit video URLs if found in persisted DB
+      if (Array.isArray(store.videoTasks)) {
+        let tasksModified = false;
+        store.videoTasks.forEach((vt, idx) => {
+          if (!vt.videoUrl || vt.videoUrl.includes('mixkit.co')) {
+            vt.videoUrl = defaultVideoTasks[idx % defaultVideoTasks.length].videoUrl;
+            tasksModified = true;
+          }
+        });
+        if (tasksModified) {
+          syncStoreToMongo(store).catch(() => {});
+        }
+      }
+
+      isStoreHydratedFromMongo = true;
+      lastHydrationTimestamp = now;
+    }
+  } catch (err: any) {
+    console.warn('[Database] Background store rehydration deferred:', err?.message);
+  }
 }
 
 /**
@@ -1097,14 +1164,30 @@ export async function initMongoSync(): Promise<void> {
 
   mongoHydrationPromise = (async () => {
     try {
-      const mongoData = await loadStoreFromMongo();
-      if (mongoData && typeof mongoData === 'object' && Array.isArray(mongoData.users)) {
+      const mongoResult = await loadStoreFromMongo();
+      if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
         // Hydrate in-memory store from MongoDB Atlas
         store = {
           ...store,
-          ...mongoData,
+          ...mongoResult.data,
         };
+
+        // Auto-migrate any broken mixkit video URLs if found
+        if (Array.isArray(store.videoTasks)) {
+          let tasksModified = false;
+          store.videoTasks.forEach((vt, idx) => {
+            if (!vt.videoUrl || vt.videoUrl.includes('mixkit.co')) {
+              vt.videoUrl = defaultVideoTasks[idx % defaultVideoTasks.length].videoUrl;
+              tasksModified = true;
+            }
+          });
+          if (tasksModified) {
+            syncStoreToMongo(store).catch(() => {});
+          }
+        }
+
         isStoreHydratedFromMongo = true;
+        lastHydrationTimestamp = Date.now();
         console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
         // Also update local cache if filesystem allows
         try {
@@ -1113,6 +1196,7 @@ export async function initMongoSync(): Promise<void> {
       } else {
         // First-time seed into MongoDB Atlas
         isStoreHydratedFromMongo = true;
+        lastHydrationTimestamp = Date.now();
         console.log('[Database] Seeding initial platform state to MongoDB Atlas...');
         await syncStoreToMongo(store);
       }

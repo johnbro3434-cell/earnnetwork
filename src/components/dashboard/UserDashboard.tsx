@@ -78,7 +78,8 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
 
   const handleCopyReferral = () => {
     if (!user) return;
-    const link = `https://earnnetworkbd.com?ref=${user.referralCode}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.earnnetworkbd.com';
+    const link = `${origin}/register?ref=${user.referralCode}`;
     navigator.clipboard.writeText(link);
     setCopiedRef(true);
     showToast('success', 'Referral Link Copied', 'Share with friends to earn Level A 10% commission!');
@@ -95,7 +96,8 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
 
   const handleShare = async () => {
     if (!user) return;
-    const link = `https://earnnetworkbd.com?ref=${user.referralCode}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.earnnetworkbd.com';
+    const link = `${origin}/register?ref=${user.referralCode}`;
     const text = `Join EarnNetwork BD (earnnetworkbd.com) using my referral code ${user.referralCode} and start earning daily! (রেজিস্ট্রেশনের জন্য রেফার কোড আবশ্যক): ${link}`;
 
     if (navigator.share) {

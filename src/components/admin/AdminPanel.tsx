@@ -217,8 +217,14 @@ export function AdminPanel() {
 
   useEffect(() => {
     loadAllAdminData();
+
+    // 15-second polling fallback for serverless environments where WebSockets are not persistent
+    const pollingInterval = setInterval(() => {
+      loadAllAdminData();
+    }, 15000);
+
     const socket = getSocket();
-    if (socket) {
+    if (socket && socket.connected) {
       joinAdminRoom(admin?.role || 'Main Admin');
       const handleUpdate = () => loadAllAdminData();
       socket.on('admin.dashboard.updated', handleUpdate);
@@ -242,12 +248,17 @@ export function AdminPanel() {
       socket.on('branding.updated', handleUpdate);
 
       return () => {
+        clearInterval(pollingInterval);
         socket.off('admin.dashboard.updated', handleUpdate);
         socket.off('deposit.status.changed', handleUpdate);
         socket.off('withdraw.status.changed', handleUpdate);
         socket.off('wallet.updated', handleUpdate);
       };
     }
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
   }, [admin?.role]);
 
   const exportCSV = (data: any[], filename: string) => {

@@ -34,7 +34,8 @@ export function ReferralView() {
       .finally(() => setLoading(false));
   }, []);
 
-  const referralLink = `https://earnnetworkbd.com?ref=${user?.referralCode || ''}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.earnnetworkbd.com';
+  const referralLink = `${origin}/register?ref=${user?.referralCode || ''}`;
   const shareMessage = `EarnNetwork BD (earnnetworkbd.com) এ আমার রেফারেল কোড (${user?.referralCode}) দিয়ে যুক্ত হয়ে প্রতিদিন ভিডিও দেখে আয় করুন! রেজিস্ট্রেশন লিংক: ${referralLink}`;
 
   const copyLink = () => {

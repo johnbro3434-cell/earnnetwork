@@ -149,7 +149,7 @@ async function loadStoreFromMongo() {
   try {
     const doc = await AppStoreModel.findOne({ key: "main_state" }).lean();
     if (doc && doc.data && typeof doc.data === "object") {
-      return doc.data;
+      return { data: doc.data, updatedAt: doc.updatedAt };
     }
   } catch (err) {
     console.warn("[Database] Failed to load store from MongoDB Atlas:", err?.message);
@@ -162,9 +162,10 @@ async function syncStoreToMongo(storeData) {
     if (!ok) return false;
   }
   try {
+    const now = /* @__PURE__ */ new Date();
     await AppStoreModel.updateOne(
       { key: "main_state" },
-      { $set: { data: storeData, updatedAt: /* @__PURE__ */ new Date() } },
+      { $set: { data: storeData, updatedAt: now } },
       { upsert: true }
     );
     if (Array.isArray(storeData.users) && storeData.users.length > 0) {
@@ -189,8 +190,9 @@ async function syncStoreToMongo(storeData) {
       DepositModel.bulkWrite(depOps).catch(() => {
       });
     }
-    if (Array.isArray(storeData.withdrawals) && storeData.withdrawals.length > 0) {
-      const wOps = storeData.withdrawals.slice(0, 500).map((w) => ({
+    const withdrawList = storeData.withdraws || storeData.withdrawals;
+    if (Array.isArray(withdrawList) && withdrawList.length > 0) {
+      const wOps = withdrawList.slice(0, 500).map((w) => ({
         updateOne: {
           filter: { id: w.id },
           update: { $set: w },
@@ -428,7 +430,7 @@ var defaultVideoTasks = [
   {
     id: "task_vid_1",
     title: "Smart Tech BD Brand Spotlight 2026",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-screen-close-up-34241-large.mp4",
+    videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4",
     thumbnailUrl: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=600&auto=format&fit=crop&q=80",
     durationSeconds: 10,
     rewardAmount: 25,
@@ -437,7 +439,7 @@ var defaultVideoTasks = [
   {
     id: "task_vid_2",
     title: "Green Agro Bangladesh Eco Project",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-man-working-on-a-computer-keyboard-40647-large.mp4",
+    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     thumbnailUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80",
     durationSeconds: 10,
     rewardAmount: 25,
@@ -446,7 +448,7 @@ var defaultVideoTasks = [
   {
     id: "task_vid_3",
     title: "Digital Commerce Dhaka Logistics Review",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-finger-pointing-at-a-screen-with-graphs-34242-large.mp4",
+    videoUrl: "https://vjs.zencdn.net/v/oceans.mp4",
     thumbnailUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80",
     durationSeconds: 10,
     rewardAmount: 25,
@@ -455,7 +457,7 @@ var defaultVideoTasks = [
   {
     id: "task_vid_4",
     title: "Fintech Innovation bKash & Nagad Integration",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-with-financial-data-28120-large.mp4",
+    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
     thumbnailUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80",
     durationSeconds: 10,
     rewardAmount: 25,
@@ -464,7 +466,7 @@ var defaultVideoTasks = [
   {
     id: "task_vid_5",
     title: "Enterprise Cloud Solutions Overview",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-a-laptop-keyboard-close-up-40646-large.mp4",
+    videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4",
     thumbnailUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&auto=format&fit=crop&q=80",
     durationSeconds: 10,
     rewardAmount: 25,
@@ -1154,6 +1156,22 @@ function getStore() {
 }
 var isStoreHydratedFromMongo = false;
 var mongoHydrationPromise = null;
+var isStoreDirty = false;
+var lastHydrationTimestamp = 0;
+var pendingSyncPromise = null;
+async function flushStoreToMongo() {
+  if (!isStoreDirty && !pendingSyncPromise) {
+    return true;
+  }
+  isStoreDirty = false;
+  pendingSyncPromise = syncStoreToMongo(store);
+  try {
+    const res = await pendingSyncPromise;
+    return res;
+  } finally {
+    pendingSyncPromise = null;
+  }
+}
 async function saveStoreAsync() {
   try {
     const dir = path.dirname(DATA_FILE);
@@ -1164,6 +1182,7 @@ async function saveStoreAsync() {
   } catch (e) {
   }
   isStoreHydratedFromMongo = true;
+  isStoreDirty = false;
   return await syncStoreToMongo(store);
 }
 function saveStore() {
@@ -1176,22 +1195,69 @@ function saveStore() {
   } catch (e) {
   }
   isStoreHydratedFromMongo = true;
-  syncStoreToMongo(store).catch((e) => {
+  isStoreDirty = true;
+  pendingSyncPromise = syncStoreToMongo(store);
+  pendingSyncPromise.catch((e) => {
     console.warn("[Database] Sync to MongoDB Atlas error:", e?.message);
   });
+}
+async function reloadStoreFromMongoIfStale(force = false) {
+  const now = Date.now();
+  if (isStoreDirty) return;
+  if (!force && now - lastHydrationTimestamp < 1500) return;
+  try {
+    const mongoResult = await loadStoreFromMongo();
+    if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
+      store = {
+        ...store,
+        ...mongoResult.data
+      };
+      if (Array.isArray(store.videoTasks)) {
+        let tasksModified = false;
+        store.videoTasks.forEach((vt, idx) => {
+          if (!vt.videoUrl || vt.videoUrl.includes("mixkit.co")) {
+            vt.videoUrl = defaultVideoTasks[idx % defaultVideoTasks.length].videoUrl;
+            tasksModified = true;
+          }
+        });
+        if (tasksModified) {
+          syncStoreToMongo(store).catch(() => {
+          });
+        }
+      }
+      isStoreHydratedFromMongo = true;
+      lastHydrationTimestamp = now;
+    }
+  } catch (err) {
+    console.warn("[Database] Background store rehydration deferred:", err?.message);
+  }
 }
 async function initMongoSync() {
   if (isStoreHydratedFromMongo) return;
   if (mongoHydrationPromise) return mongoHydrationPromise;
   mongoHydrationPromise = (async () => {
     try {
-      const mongoData = await loadStoreFromMongo();
-      if (mongoData && typeof mongoData === "object" && Array.isArray(mongoData.users)) {
+      const mongoResult = await loadStoreFromMongo();
+      if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
         store = {
           ...store,
-          ...mongoData
+          ...mongoResult.data
         };
+        if (Array.isArray(store.videoTasks)) {
+          let tasksModified = false;
+          store.videoTasks.forEach((vt, idx) => {
+            if (!vt.videoUrl || vt.videoUrl.includes("mixkit.co")) {
+              vt.videoUrl = defaultVideoTasks[idx % defaultVideoTasks.length].videoUrl;
+              tasksModified = true;
+            }
+          });
+          if (tasksModified) {
+            syncStoreToMongo(store).catch(() => {
+            });
+          }
+        }
         isStoreHydratedFromMongo = true;
+        lastHydrationTimestamp = Date.now();
         console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
         try {
           fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
@@ -1199,6 +1265,7 @@ async function initMongoSync() {
         }
       } else {
         isStoreHydratedFromMongo = true;
+        lastHydrationTimestamp = Date.now();
         console.log("[Database] Seeding initial platform state to MongoDB Atlas...");
         await syncStoreToMongo(store);
       }
@@ -5934,10 +6001,39 @@ app.use(async (req, res, next) => {
   try {
     const connected = await connectMongoDB();
     if (connected) {
-      await initMongoSync();
+      await reloadStoreFromMongoIfStale(req.method !== "GET");
     }
   } catch (e) {
   }
+  next();
+});
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  const originalSend = res.send.bind(res);
+  let hasFlushed = false;
+  const flushPersistence = async () => {
+    if (hasFlushed) return;
+    hasFlushed = true;
+    try {
+      await flushStoreToMongo();
+    } catch (e) {
+      console.warn("[Database] Flush on response deferred:", e);
+    }
+  };
+  res.json = function(body) {
+    flushPersistence().catch(() => {
+    }).finally(() => {
+      originalJson(body);
+    });
+    return res;
+  };
+  res.send = function(body) {
+    flushPersistence().catch(() => {
+    }).finally(() => {
+      originalSend(body);
+    });
+    return res;
+  };
   next();
 });
 app.use("/api", globalApiLimiter);

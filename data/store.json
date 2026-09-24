@@ -21,7 +21,7 @@
       "withdrawPasswordHash": "$2b$10$ARp/KUnFNtSTqypAy4YcLe/TKPlVRvR3r4xeK7xr3/bxRud/YuqDS",
       "deviceFingerprint": "fp_desktop_dhaka_01",
       "lastLoginIp": "::ffff:127.0.0.1",
-      "lastLoginAt": "2026-09-23T20:37:46.980Z"
+      "lastLoginAt": "2026-09-23T21:01:33.874Z"
     },
     {
       "id": "user_01822222222",
@@ -256,64 +256,20 @@
       "deviceFingerprint": "fp_tablet_barisal_06",
       "lastLoginIp": "103.111.45.2",
       "lastLoginAt": "2026-09-23T18:53:54.428Z"
-    },
-    {
-      "id": "user_1790195810401",
-      "phone": "01881199439",
-      "passwordHash": "$2b$10$.jZevnGOyq7uCbZUqHhJs.PGVKbAvbjmgU56mxlKXF3vEXhL.kXPG",
-      "role": "Member",
-      "referralCode": "EH9439974",
-      "referredBy": "EHBD1001",
-      "createdAt": "2026-09-23T20:36:50.401Z",
-      "status": "active",
-      "isTrial": true,
-      "trialStartDate": "2026-09-23T20:36:50.401Z",
-      "trialDaysUsed": 0,
-      "trialTotalEarned": 0,
-      "trialMissedDays": 0,
-      "trialExpired": false,
-      "activePackageId": "pkg_trial",
-      "packageActivatedAt": "2026-09-23T20:36:50.401Z",
-      "withdrawSetupDone": false,
-      "deviceFingerprint": "fp_1790195810401_bdxpaiy",
-      "lastLoginIp": "::ffff:127.0.0.1",
-      "lastLoginAt": "2026-09-23T20:36:50.401Z"
-    },
-    {
-      "id": "user_1790195866843",
-      "phone": "01965269494",
-      "passwordHash": "$2b$10$K50vNca8JWxdLLM3vrmlT.F2HJetr1mqePTKwkLhaoQ9q86ad4ypO",
-      "role": "Member",
-      "referralCode": "EH9494752",
-      "referredBy": "EHBD1001",
-      "createdAt": "2026-09-23T20:37:46.843Z",
-      "status": "active",
-      "isTrial": true,
-      "trialStartDate": "2026-09-23T20:37:46.843Z",
-      "trialDaysUsed": 1,
-      "trialTotalEarned": 5,
-      "trialMissedDays": 0,
-      "trialExpired": false,
-      "activePackageId": "pkg_trial",
-      "packageActivatedAt": "2026-09-23T20:37:46.843Z",
-      "withdrawSetupDone": false,
-      "deviceFingerprint": "fp_1790195866843_qdjxwwx",
-      "lastLoginIp": "::ffff:127.0.0.1",
-      "lastLoginAt": "2026-09-23T20:37:46.843Z"
     }
   ],
   "wallets": [
     {
       "userId": "user_01711111111",
-      "balance": 16650,
+      "balance": 16675,
       "totalDeposit": 15000,
       "totalWithdraw": 9200,
-      "totalEarned": 24500,
-      "todayIncome": 250,
+      "totalEarned": 24525,
+      "todayIncome": 275,
       "referralIncome": 850,
       "giftIncome": 50,
       "salaryIncome": 1500,
-      "updatedAt": "2026-09-23T18:53:54.428Z"
+      "updatedAt": "2026-09-23T21:01:33.901Z"
     },
     {
       "userId": "user_01822222222",
@@ -446,30 +402,6 @@
       "giftIncome": 50,
       "salaryIncome": 1500,
       "updatedAt": "2026-09-23T18:53:54.428Z"
-    },
-    {
-      "userId": "user_1790195810401",
-      "balance": 0,
-      "totalDeposit": 0,
-      "totalWithdraw": 0,
-      "totalEarned": 0,
-      "todayIncome": 0,
-      "referralIncome": 0,
-      "giftIncome": 0,
-      "salaryIncome": 0,
-      "updatedAt": "2026-09-23T20:36:50.401Z"
-    },
-    {
-      "userId": "user_1790195866843",
-      "balance": 5,
-      "totalDeposit": 0,
-      "totalWithdraw": 0,
-      "totalEarned": 5,
-      "todayIncome": 5,
-      "referralIncome": 0,
-      "giftIncome": 0,
-      "salaryIncome": 0,
-      "updatedAt": "2026-09-23T20:37:46.874Z"
     }
   ],
   "transactions": [
@@ -791,14 +723,14 @@
       "referenceId": "th_1790189856823_w2dd"
     },
     {
-      "id": "tx_1790195866874",
-      "userId": "user_1790195866843",
+      "id": "tx_1790197293901",
+      "userId": "user_01711111111",
       "type": "task_reward",
-      "amount": 5,
-      "description": "10s Video Task Reward (Free Trial)",
-      "balanceAfter": 5,
-      "createdAt": "2026-09-23T20:37:46.874Z",
-      "referenceId": "th_1790195866874_uyh3"
+      "amount": 25,
+      "description": "10s Video Task Reward (Golden)",
+      "balanceAfter": 16675,
+      "createdAt": "2026-09-23T21:01:33.901Z",
+      "referenceId": "th_1790197293901_mejd"
     }
   ],
   "packages": [
@@ -1373,12 +1305,12 @@
       "ipAddress": "27.123.253.238, 169.254.169.126"
     },
     {
-      "id": "th_1790195866874_uyh3",
-      "userId": "user_1790195866843",
+      "id": "th_1790197293901_mejd",
+      "userId": "user_01711111111",
       "taskId": "task_vid_1",
-      "packageId": "pkg_trial",
-      "rewardEarned": 5,
-      "completedAt": "2026-09-23T20:37:46.874Z",
+      "packageId": "pkg_golden",
+      "rewardEarned": 25,
+      "completedAt": "2026-09-23T21:01:33.901Z",
       "ipAddress": "::ffff:127.0.0.1"
     }
   ],
@@ -1665,24 +1597,6 @@
       "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
       "isRead": false,
       "createdAt": "2026-09-23T18:47:44.202Z"
-    },
-    {
-      "id": "notif_1790195810401",
-      "userId": "user_1790195810401",
-      "type": "task",
-      "title": "Welcome to EarnNetwork BD!",
-      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
-      "isRead": false,
-      "createdAt": "2026-09-23T20:36:50.401Z"
-    },
-    {
-      "id": "notif_1790195866843",
-      "userId": "user_1790195866843",
-      "type": "task",
-      "title": "Welcome to EarnNetwork BD!",
-      "message": "Your 4-Day Free Trial is now active. Complete 1 video task today to earn 25 TK.",
-      "isRead": false,
-      "createdAt": "2026-09-23T20:37:46.843Z"
     }
   ],
   "settings": {
@@ -1875,24 +1789,6 @@
       "trialWithdrawalCompleted": false,
       "lastSeenIp": "27.123.253.226, 169.254.169.126",
       "lastSeenAt": "2026-09-23T18:47:44.201Z"
-    },
-    {
-      "deviceFingerprint": "fp_1790195810401_bdxpaiy",
-      "associatedUserIds": [
-        "user_1790195810401"
-      ],
-      "trialWithdrawalCompleted": false,
-      "lastSeenIp": "::ffff:127.0.0.1",
-      "lastSeenAt": "2026-09-23T20:36:50.401Z"
-    },
-    {
-      "deviceFingerprint": "fp_1790195866843_qdjxwwx",
-      "associatedUserIds": [
-        "user_1790195866843"
-      ],
-      "trialWithdrawalCompleted": false,
-      "lastSeenIp": "::ffff:127.0.0.1",
-      "lastSeenAt": "2026-09-23T20:37:46.843Z"
     }
   ],
   "supportTickets": [
