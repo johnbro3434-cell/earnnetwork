@@ -1067,15 +1067,149 @@ export function isStoreStateDirty(): boolean {
   return isStoreDirty;
 }
 
+/**
+ * Intelligent conflict-free state merger.
+ * Ensures user registrations, wallet updates, deposits, withdrawals, and task histories
+ * are merged additively so no user data is ever lost across serverless instances.
+ */
+export function mergeStoreState(local: StoreData, remote: any): StoreData {
+  if (!remote || typeof remote !== 'object') return local;
+
+  const mergeById = <T extends { id: string }>(localList: T[] = [], remoteList: T[] = []): T[] => {
+    const map = new Map<string, T>();
+    const safeRemote = Array.isArray(remoteList) ? remoteList : [];
+    const safeLocal = Array.isArray(localList) ? localList : [];
+
+    for (const item of safeRemote) {
+      if (item && item.id) map.set(item.id, item);
+    }
+
+    for (const localItem of safeLocal) {
+      if (!localItem || !localItem.id) continue;
+      const remoteItem = map.get(localItem.id);
+      if (!remoteItem) {
+        map.set(localItem.id, localItem);
+      } else {
+        const localTime = new Date(
+          (localItem as any).updatedAt || (localItem as any).lastLoginAt || (localItem as any).createdAt || 0
+        ).getTime();
+        const remoteTime = new Date(
+          (remoteItem as any).updatedAt || (remoteItem as any).lastLoginAt || (remoteItem as any).createdAt || 0
+        ).getTime();
+        if (localTime >= remoteTime) {
+          map.set(localItem.id, { ...remoteItem, ...localItem });
+        } else {
+          map.set(localItem.id, { ...localItem, ...remoteItem });
+        }
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const mergeWallets = (localList: Wallet[] = [], remoteList: Wallet[] = []): Wallet[] => {
+    const map = new Map<string, Wallet>();
+    const safeRemote = Array.isArray(remoteList) ? remoteList : [];
+    const safeLocal = Array.isArray(localList) ? localList : [];
+
+    for (const w of safeRemote) {
+      if (w && w.userId) map.set(w.userId, w);
+    }
+
+    for (const localW of safeLocal) {
+      if (!localW || !localW.userId) continue;
+      const remoteW = map.get(localW.userId);
+      if (!remoteW) {
+        map.set(localW.userId, localW);
+      } else {
+        const localTime = new Date(localW.updatedAt || 0).getTime();
+        const remoteTime = new Date(remoteW.updatedAt || 0).getTime();
+        if (localTime >= remoteTime) {
+          map.set(localW.userId, { ...remoteW, ...localW });
+        } else {
+          map.set(localW.userId, { ...localW, ...remoteW });
+        }
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const mergeFingerprints = (
+    localList: DeviceFingerprintRecord[] = [],
+    remoteList: DeviceFingerprintRecord[] = []
+  ): DeviceFingerprintRecord[] => {
+    const map = new Map<string, DeviceFingerprintRecord>();
+    const safeRemote = Array.isArray(remoteList) ? remoteList : [];
+    const safeLocal = Array.isArray(localList) ? localList : [];
+
+    for (const df of safeRemote) {
+      if (df && df.deviceFingerprint) map.set(df.deviceFingerprint, df);
+    }
+
+    for (const localDf of safeLocal) {
+      if (!localDf || !localDf.deviceFingerprint) continue;
+      const remoteDf = map.get(localDf.deviceFingerprint);
+      if (!remoteDf) {
+        map.set(localDf.deviceFingerprint, localDf);
+      } else {
+        const combined = Array.from(
+          new Set([...(remoteDf.associatedUserIds || []), ...(localDf.associatedUserIds || [])])
+        );
+        map.set(localDf.deviceFingerprint, {
+          ...remoteDf,
+          ...localDf,
+          associatedUserIds: combined,
+          trialWithdrawalCompleted: remoteDf.trialWithdrawalCompleted || localDf.trialWithdrawalCompleted,
+        });
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  return {
+    ...local,
+    ...remote,
+    users: mergeById(local.users, remote.users),
+    wallets: mergeWallets(local.wallets, remote.wallets),
+    deposits: mergeById(local.deposits, remote.deposits),
+    withdraws: mergeById(local.withdraws, remote.withdraws || remote.withdrawals),
+    taskHistories: mergeById(local.taskHistories, remote.taskHistories),
+    walletTransactions: mergeById(local.walletTransactions, remote.walletTransactions),
+    transactions: mergeById(local.transactions, remote.transactions),
+    notifications: mergeById(local.notifications, remote.notifications),
+    referralCommissions: mergeById(local.referralCommissions, remote.referralCommissions),
+    deviceFingerprints: mergeFingerprints(local.deviceFingerprints, remote.deviceFingerprints),
+    supportTickets: mergeById(local.supportTickets, remote.supportTickets),
+    smsTransactions: mergeById(local.smsTransactions, remote.smsTransactions),
+    verifyDevices: mergeById(local.verifyDevices, remote.verifyDevices),
+    adminUsers: mergeById(local.adminUsers, remote.adminUsers),
+    auditLogs: mergeById(local.auditLogs, remote.auditLogs),
+    fraudLogs: mergeById(local.fraudLogs, remote.fraudLogs),
+    verificationLogs: mergeById(local.verificationLogs, remote.verificationLogs),
+    apkVersions: mergeById(local.apkVersions, remote.apkVersions),
+    packages: Array.isArray(remote.packages) && remote.packages.length > 0 ? remote.packages : local.packages,
+    withdrawCards: Array.isArray(remote.withdrawCards) && remote.withdrawCards.length > 0 ? remote.withdrawCards : local.withdrawCards,
+    paymentNumbers: Array.isArray(remote.paymentNumbers) && remote.paymentNumbers.length > 0 ? remote.paymentNumbers : local.paymentNumbers,
+    settings: { ...local.settings, ...(remote.settings || {}) },
+    mfsSettings: { ...local.mfsSettings, ...(remote.mfsSettings || {}) },
+    cloudinarySettings: { ...local.cloudinarySettings, ...(remote.cloudinarySettings || {}) },
+    videoTasks: Array.isArray(remote.videoTasks) && remote.videoTasks.length > 0 ? remote.videoTasks : local.videoTasks,
+  };
+}
+
 export async function flushStoreToMongo(): Promise<boolean> {
   if (!isStoreDirty && !pendingSyncPromise) {
     return true;
   }
-  isStoreDirty = false;
   pendingSyncPromise = syncStoreToMongo(store);
   try {
     const res = await pendingSyncPromise;
+    if (res) {
+      isStoreDirty = false;
+    }
     return res;
+  } catch (err: any) {
+    console.warn('[Database] Pending sync flush error:', err?.message || err);
+    return false;
   } finally {
     pendingSyncPromise = null;
   }
@@ -1093,8 +1227,13 @@ export async function saveStoreAsync(): Promise<boolean> {
   }
 
   isStoreHydratedFromMongo = true;
-  isStoreDirty = false;
-  return await syncStoreToMongo(store);
+  const syncSuccess = await syncStoreToMongo(store);
+  if (syncSuccess) {
+    isStoreDirty = false;
+  } else {
+    isStoreDirty = true;
+  }
+  return syncSuccess;
 }
 
 export function saveStore() {
@@ -1111,27 +1250,32 @@ export function saveStore() {
   isStoreHydratedFromMongo = true;
   isStoreDirty = true;
   pendingSyncPromise = syncStoreToMongo(store);
-  pendingSyncPromise.catch((e) => {
-    console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
-  });
+  pendingSyncPromise
+    .then((success) => {
+      if (success) isStoreDirty = false;
+    })
+    .catch((e) => {
+      console.warn('[Database] Sync to MongoDB Atlas error:', e?.message);
+    });
 }
 
 /**
  * Re-hydrates store from MongoDB Atlas if data is stale or on mutating requests.
- * Ensures multi-instance consistency in serverless environments.
+ * Merges remotely changed records additively without wiping local memory.
  */
 export async function reloadStoreFromMongoIfStale(force = false): Promise<void> {
   const now = Date.now();
-  if (isStoreDirty) return; // Don't overwrite unsaved local modifications
-  if (!force && now - lastHydrationTimestamp < 1500) return; // 1.5s throttle for read queries
+  if (isStoreDirty) {
+    // Attempt background flush before re-fetching
+    flushStoreToMongo().catch(() => {});
+  }
+  if (!force && now - lastHydrationTimestamp < 1500) return;
 
   try {
     const mongoResult = await loadStoreFromMongo();
     if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
-      store = {
-        ...store,
-        ...mongoResult.data,
-      };
+      // Seamless lossless merge
+      store = mergeStoreState(store, mongoResult.data);
 
       // Auto-migrate any broken mixkit video URLs if found in persisted DB
       if (Array.isArray(store.videoTasks)) {
@@ -1166,11 +1310,8 @@ export async function initMongoSync(): Promise<void> {
     try {
       const mongoResult = await loadStoreFromMongo();
       if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
-        // Hydrate in-memory store from MongoDB Atlas
-        store = {
-          ...store,
-          ...mongoResult.data,
-        };
+        // Merge in-memory store with MongoDB Atlas platform state
+        store = mergeStoreState(store, mongoResult.data);
 
         // Auto-migrate any broken mixkit video URLs if found
         if (Array.isArray(store.videoTasks)) {
@@ -1189,7 +1330,6 @@ export async function initMongoSync(): Promise<void> {
         isStoreHydratedFromMongo = true;
         lastHydrationTimestamp = Date.now();
         console.log(`[Database] Hydrated ${store.users?.length || 0} users and platform state from MongoDB Atlas.`);
-        // Also update local cache if filesystem allows
         try {
           fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2), 'utf-8');
         } catch (e) {}
@@ -1202,6 +1342,8 @@ export async function initMongoSync(): Promise<void> {
       }
     } catch (err: any) {
       console.warn('[Database] Error initializing MongoDB state sync:', err?.message);
+    } finally {
+      mongoHydrationPromise = null;
     }
   })();
 

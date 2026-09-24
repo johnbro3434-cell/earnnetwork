@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes';
-import { connectMongoDB } from './database/mongoose';
-import { initMongoSync, flushStoreToMongo, reloadStoreFromMongoIfStale } from './db';
+import { connectMongoDB, isMongoConnected } from './database/mongoose';
+import { initMongoSync, flushStoreToMongo, reloadStoreFromMongoIfStale, isStoreHydrated } from './db';
 import {
   applySecurityHeaders,
   sanitizeRequestData,
@@ -38,7 +38,11 @@ app.use(async (req, res, next) => {
   try {
     const connected = await connectMongoDB();
     if (connected) {
-      await reloadStoreFromMongoIfStale(req.method !== 'GET');
+      if (!isStoreHydrated()) {
+        await initMongoSync();
+      } else {
+        await reloadStoreFromMongoIfStale(req.method !== 'GET');
+      }
     }
   } catch (e) {
     // continue with local persistence if DB unavailable
@@ -95,6 +99,7 @@ app.use(cookieParser());
 const healthHandler = (req: express.Request, res: express.Response) => {
   res.json({
     status: 'ok',
+    database: isMongoConnected() ? 'connected' : 'offline_or_connecting',
     service: 'EarnNetwork BD (earnnetworkbd.com)',
     version: 'v20.0.0-enterprise',
     time: new Date().toISOString(),

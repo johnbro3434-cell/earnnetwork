@@ -7,6 +7,7 @@ import {
   saveStore,
   saveStoreAsync,
   initMongoSync,
+  reloadStoreFromMongoIfStale,
   recordWalletLedgerEntry,
   recordFinancialAuditLog,
   isTrxUnique,
@@ -105,7 +106,7 @@ export async function authenticateUser(req: Request, res: Response, next: () => 
     if (decoded.isAdmin) {
       let adminRec = (store.adminUsers || []).find(a => a.id === decoded.id || a.phone === decoded.phone);
       if (!adminRec) {
-        await initMongoSync().catch(() => {});
+        await reloadStoreFromMongoIfStale(true).catch(() => {});
         store = getStore();
         adminRec = (store.adminUsers || []).find(a => a.id === decoded.id || a.phone === decoded.phone);
       }
@@ -119,7 +120,7 @@ export async function authenticateUser(req: Request, res: Response, next: () => 
 
     let dbUser = store.users.find(u => u.id === decoded.id || (decoded.phone && u.phone === decoded.phone));
     if (!dbUser) {
-      await initMongoSync().catch(() => {});
+      await reloadStoreFromMongoIfStale(true).catch(() => {});
       store = getStore();
       dbUser = store.users.find(u => u.id === decoded.id || (decoded.phone && u.phone === decoded.phone));
     }
@@ -228,9 +229,14 @@ router.post('/auth/register', authRateLimiter, async (req: Request, res: Respons
   }
 
   const normalizedPhone = normalizeBdPhone(phone);
-  const store = getStore();
+  let store = getStore();
 
-  const existingUser = store.users.find(u => u.phone === normalizedPhone);
+  let existingUser = store.users.find(u => u.phone === normalizedPhone);
+  if (!existingUser) {
+    await reloadStoreFromMongoIfStale(true).catch(() => {});
+    store = getStore();
+    existingUser = store.users.find(u => u.phone === normalizedPhone);
+  }
   if (existingUser) {
     return res.status(400).json({ error: 'এই মোবাইল নম্বরটি দিয়ে ইতিমধ্যে অ্যাকাউন্ট খোলা হয়েছে।' });
   }
@@ -250,9 +256,17 @@ router.post('/auth/register', authRateLimiter, async (req: Request, res: Respons
   ].filter(Boolean).map((c: string) => c.toUpperCase());
   const isOfficialCode = officialCodes.includes(cleanRefCode);
 
-  const uplineUser = store.users.find(
+  let uplineUser = store.users.find(
     u => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
   );
+
+  if (!uplineUser && !isOfficialCode) {
+    await reloadStoreFromMongoIfStale(true).catch(() => {});
+    store = getStore();
+    uplineUser = store.users.find(
+      u => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
+    );
+  }
 
   if (!uplineUser && !isOfficialCode) {
     return res.status(400).json({
@@ -383,7 +397,7 @@ router.post('/auth/login', authRateLimiter, async (req: Request, res: Response) 
   );
 
   if (!admin) {
-    await initMongoSync().catch(() => {});
+    await reloadStoreFromMongoIfStale(true).catch(() => {});
     store = getStore();
     admin = store.adminUsers.find(
       a => a.phone === normalizedPhone ||
@@ -409,7 +423,7 @@ router.post('/auth/login', authRateLimiter, async (req: Request, res: Response) 
   // Check regular users
   let user = store.users.find(u => u.phone === normalizedPhone);
   if (!user) {
-    await initMongoSync().catch(() => {});
+    await reloadStoreFromMongoIfStale(true).catch(() => {});
     store = getStore();
     user = store.users.find(u => u.phone === normalizedPhone);
   }
@@ -578,7 +592,7 @@ router.get('/tasks/today', authenticateUser, async (req: Request, res: Response)
   let store = getStore();
   let user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
   if (!user) {
-    await initMongoSync().catch(() => {});
+    await reloadStoreFromMongoIfStale(true).catch(() => {});
     store = getStore();
     user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
   }
@@ -674,7 +688,7 @@ router.post('/tasks/complete', financialRateLimiter, authenticateUser, async (re
     const targetUserId = user ? user.id : '';
     let wallet = targetUserId ? store.wallets.find(w => w.userId === targetUserId) : null;
     if (!user || !wallet) {
-      await initMongoSync().catch(() => {});
+      await reloadStoreFromMongoIfStale(true).catch(() => {});
       store = getStore();
       user = store.users.find(u => u.id === tokenUser.id || (tokenUser.phone && u.phone === tokenUser.phone));
       const recheckedUserId = user ? user.id : '';

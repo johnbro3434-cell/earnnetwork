@@ -17,56 +17,99 @@ import bcrypt from "bcryptjs";
 // server/database/mongoose.ts
 import mongoose from "mongoose";
 mongoose.set("bufferCommands", false);
-mongoose.connection.on("error", () => {
-  isConnected = false;
-});
-var MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || "";
+var globalWithMongoose = global;
+if (!globalWithMongoose._mongooseCache) {
+  globalWithMongoose._mongooseCache = { conn: null, promise: null };
+}
+var cache = globalWithMongoose._mongooseCache;
 var isConnected = false;
-var isConnecting = false;
 var lastAttempt = 0;
-var RETRY_COOLDOWN_MS = 10 * 1e3;
+var RETRY_COOLDOWN_MS = 3e3;
+mongoose.connection.on("connected", () => {
+  isConnected = true;
+  console.log("[Database] MongoDB Atlas connection state: CONNECTED");
+});
+mongoose.connection.on("disconnected", () => {
+  isConnected = false;
+  if (cache) {
+    cache.conn = null;
+    cache.promise = null;
+  }
+  console.warn("[Database] MongoDB Atlas connection state: DISCONNECTED");
+});
+mongoose.connection.on("reconnected", () => {
+  isConnected = true;
+  console.log("[Database] MongoDB Atlas connection state: RECONNECTED");
+});
+mongoose.connection.on("error", (err) => {
+  isConnected = false;
+  if (cache) {
+    cache.conn = null;
+    cache.promise = null;
+  }
+  console.warn("[Database] MongoDB Atlas connection error:", err?.message || err);
+});
 async function connectMongoDB() {
-  if (isConnected && mongoose.connection.readyState === 1) return true;
+  if (isConnected && mongoose.connection.readyState === 1) {
+    return true;
+  }
   const uri = process.env.MONGODB_URI || process.env.MONGO_URL || "";
   if (!uri) {
     return false;
   }
-  if (isConnecting) return false;
-  if (Date.now() - lastAttempt < RETRY_COOLDOWN_MS) {
-    return false;
-  }
-  isConnecting = true;
-  lastAttempt = Date.now();
-  try {
-    const opts = {
-      bufferCommands: false,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5e3,
-      connectTimeoutMS: 5e3
-    };
-    await mongoose.connect(uri, opts);
-    isConnected = true;
-    console.log("[Database] Successfully connected to MongoDB Atlas cluster.");
-    return true;
-  } catch (err) {
-    const isWhitelistIssue = err?.name === "MongooseServerSelectionError" || err?.message && (err.message.includes("whitelisted") || err.message.includes("Could not connect to any servers"));
-    if (isWhitelistIssue) {
-      console.warn(
-        "[Database] Notice: MongoDB Atlas cluster is not reachable from this IP (Atlas Network Access requires 0.0.0.0/0). Seamlessly operating with enterprise local JSON store."
-      );
-    } else {
-      console.warn("[Database] MongoDB Atlas connection deferred. Active store: enterprise local JSON engine.");
+  if (cache.promise) {
+    try {
+      return await cache.promise;
+    } catch {
+      cache.promise = null;
     }
-    isConnected = false;
-    return false;
-  } finally {
-    isConnecting = false;
   }
+  if (Date.now() - lastAttempt < RETRY_COOLDOWN_MS) {
+    return isConnected && mongoose.connection.readyState === 1;
+  }
+  lastAttempt = Date.now();
+  const opts = {
+    bufferCommands: false,
+    maxPoolSize: 10,
+    minPoolSize: 1,
+    serverSelectionTimeoutMS: 8e3,
+    connectTimeoutMS: 8e3,
+    socketTimeoutMS: 45e3,
+    heartbeatFrequencyMS: 1e4
+  };
+  cache.promise = (async () => {
+    try {
+      await mongoose.connect(uri, opts);
+      isConnected = true;
+      cache.conn = mongoose;
+      console.log("[Database] Successfully connected to MongoDB Atlas cluster.");
+      return true;
+    } catch (err) {
+      isConnected = false;
+      cache.conn = null;
+      const isWhitelistIssue = err?.name === "MongooseServerSelectionError" || err?.message && (err.message.includes("whitelisted") || err.message.includes("Could not connect to any servers"));
+      if (isWhitelistIssue) {
+        console.warn(
+          "[Database] Notice: MongoDB Atlas cluster is not reachable from this IP (Atlas Network Access requires 0.0.0.0/0). Seamlessly operating with enterprise local JSON store."
+        );
+      } else {
+        console.warn("[Database] MongoDB Atlas connection attempt deferred:", err?.message || err);
+      }
+      return false;
+    } finally {
+      cache.promise = null;
+    }
+  })();
+  return await cache.promise;
+}
+function isMongoConnected() {
+  return isConnected && mongoose.connection.readyState === 1;
 }
 var UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, index: true },
   phone: { type: String, required: true, unique: true, index: true },
-  password: { type: String, required: true },
+  password: { type: String },
+  passwordHash: { type: String },
   name: { type: String },
   role: { type: String, default: "user" },
   balance: { type: Number, default: 0 },
@@ -75,16 +118,36 @@ var UserSchema = new mongoose.Schema({
   referredBy: { type: String },
   trialDay: { type: Number, default: 1 },
   trialStartDate: { type: String },
+  trialDaysUsed: { type: Number, default: 0 },
+  trialTotalEarned: { type: Number, default: 0 },
   trialCompleted: { type: Boolean, default: false },
   trialWithdrawCompleted: { type: Boolean, default: false },
   freeWithdrawAllowed: { type: Boolean, default: false },
   currentPackage: { type: Object, default: null },
+  activePackageId: { type: String },
   isBanned: { type: Boolean, default: false },
   isSuspended: { type: Boolean, default: false },
+  status: { type: String, default: "active" },
+  deviceFingerprint: { type: String },
+  lastLoginIp: { type: String },
+  lastLoginAt: { type: String },
   createdAt: { type: String, default: () => (/* @__PURE__ */ new Date()).toISOString() },
   updatedAt: { type: String, default: () => (/* @__PURE__ */ new Date()).toISOString() }
 });
 var UserModel = mongoose.models.User || mongoose.model("User", UserSchema);
+var WalletSchema = new mongoose.Schema({
+  userId: { type: String, required: true, unique: true, index: true },
+  balance: { type: Number, default: 0 },
+  totalDeposit: { type: Number, default: 0 },
+  totalWithdraw: { type: Number, default: 0 },
+  totalEarned: { type: Number, default: 0 },
+  todayIncome: { type: Number, default: 0 },
+  referralIncome: { type: Number, default: 0 },
+  giftIncome: { type: Number, default: 0 },
+  salaryIncome: { type: Number, default: 0 },
+  updatedAt: { type: String, default: () => (/* @__PURE__ */ new Date()).toISOString() }
+});
+var WalletModel = mongoose.models.Wallet || mongoose.model("Wallet", WalletSchema);
 var WalletTransactionSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, index: true },
   userId: { type: String, required: true, index: true },
@@ -131,6 +194,16 @@ var WithdrawSchema = new mongoose.Schema({
   updatedAt: { type: String, default: () => (/* @__PURE__ */ new Date()).toISOString() }
 });
 var WithdrawModel = mongoose.models.Withdrawal || mongoose.model("Withdrawal", WithdrawSchema);
+var TaskHistorySchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, index: true },
+  userId: { type: String, required: true, index: true },
+  taskId: { type: String, required: true },
+  packageId: { type: String },
+  rewardEarned: { type: Number, required: true },
+  completedAt: { type: String, required: true, index: true },
+  ipAddress: { type: String }
+});
+var TaskHistoryModel = mongoose.models.TaskHistory || mongoose.model("TaskHistory", TaskHistorySchema);
 var AppStoreSchema = new mongoose.Schema(
   {
     key: { type: String, required: true, unique: true, default: "main_state" },
@@ -142,7 +215,7 @@ var AppStoreSchema = new mongoose.Schema(
 );
 var AppStoreModel = mongoose.models.AppStore || mongoose.model("AppStore", AppStoreSchema);
 async function loadStoreFromMongo() {
-  if (!isConnected) {
+  if (!isConnected || mongoose.connection.readyState !== 1) {
     const ok = await connectMongoDB();
     if (!ok) return null;
   }
@@ -157,7 +230,7 @@ async function loadStoreFromMongo() {
   return null;
 }
 async function syncStoreToMongo(storeData) {
-  if (!isConnected) {
+  if (!isConnected || mongoose.connection.readyState !== 1) {
     const ok = await connectMongoDB();
     if (!ok) return false;
   }
@@ -169,7 +242,7 @@ async function syncStoreToMongo(storeData) {
       { upsert: true }
     );
     if (Array.isArray(storeData.users) && storeData.users.length > 0) {
-      const bulkOps = storeData.users.slice(0, 500).map((u) => ({
+      const bulkOps = storeData.users.slice(0, 1e3).map((u) => ({
         updateOne: {
           filter: { id: u.id },
           update: { $set: u },
@@ -179,8 +252,19 @@ async function syncStoreToMongo(storeData) {
       UserModel.bulkWrite(bulkOps).catch(() => {
       });
     }
+    if (Array.isArray(storeData.wallets) && storeData.wallets.length > 0) {
+      const wOps = storeData.wallets.slice(0, 1e3).map((w) => ({
+        updateOne: {
+          filter: { userId: w.userId },
+          update: { $set: w },
+          upsert: true
+        }
+      }));
+      WalletModel.bulkWrite(wOps).catch(() => {
+      });
+    }
     if (Array.isArray(storeData.deposits) && storeData.deposits.length > 0) {
-      const depOps = storeData.deposits.slice(0, 500).map((d) => ({
+      const depOps = storeData.deposits.slice(0, 1e3).map((d) => ({
         updateOne: {
           filter: { id: d.id },
           update: { $set: d },
@@ -192,7 +276,7 @@ async function syncStoreToMongo(storeData) {
     }
     const withdrawList = storeData.withdraws || storeData.withdrawals;
     if (Array.isArray(withdrawList) && withdrawList.length > 0) {
-      const wOps = withdrawList.slice(0, 500).map((w) => ({
+      const wOps = withdrawList.slice(0, 1e3).map((w) => ({
         updateOne: {
           filter: { id: w.id },
           update: { $set: w },
@@ -200,6 +284,28 @@ async function syncStoreToMongo(storeData) {
         }
       }));
       WithdrawModel.bulkWrite(wOps).catch(() => {
+      });
+    }
+    if (Array.isArray(storeData.walletTransactions) && storeData.walletTransactions.length > 0) {
+      const txOps = storeData.walletTransactions.slice(0, 1e3).map((tx) => ({
+        updateOne: {
+          filter: { id: tx.id },
+          update: { $set: tx },
+          upsert: true
+        }
+      }));
+      WalletTransactionModel.bulkWrite(txOps).catch(() => {
+      });
+    }
+    if (Array.isArray(storeData.taskHistories) && storeData.taskHistories.length > 0) {
+      const thOps = storeData.taskHistories.slice(0, 1e3).map((th) => ({
+        updateOne: {
+          filter: { id: th.id },
+          update: { $set: th },
+          upsert: true
+        }
+      }));
+      TaskHistoryModel.bulkWrite(thOps).catch(() => {
       });
     }
     return true;
@@ -1159,15 +1265,133 @@ var mongoHydrationPromise = null;
 var isStoreDirty = false;
 var lastHydrationTimestamp = 0;
 var pendingSyncPromise = null;
+function isStoreHydrated() {
+  return isStoreHydratedFromMongo;
+}
+function mergeStoreState(local, remote) {
+  if (!remote || typeof remote !== "object") return local;
+  const mergeById = (localList = [], remoteList = []) => {
+    const map = /* @__PURE__ */ new Map();
+    const safeRemote = Array.isArray(remoteList) ? remoteList : [];
+    const safeLocal = Array.isArray(localList) ? localList : [];
+    for (const item of safeRemote) {
+      if (item && item.id) map.set(item.id, item);
+    }
+    for (const localItem of safeLocal) {
+      if (!localItem || !localItem.id) continue;
+      const remoteItem = map.get(localItem.id);
+      if (!remoteItem) {
+        map.set(localItem.id, localItem);
+      } else {
+        const localTime = new Date(
+          localItem.updatedAt || localItem.lastLoginAt || localItem.createdAt || 0
+        ).getTime();
+        const remoteTime = new Date(
+          remoteItem.updatedAt || remoteItem.lastLoginAt || remoteItem.createdAt || 0
+        ).getTime();
+        if (localTime >= remoteTime) {
+          map.set(localItem.id, { ...remoteItem, ...localItem });
+        } else {
+          map.set(localItem.id, { ...localItem, ...remoteItem });
+        }
+      }
+    }
+    return Array.from(map.values());
+  };
+  const mergeWallets = (localList = [], remoteList = []) => {
+    const map = /* @__PURE__ */ new Map();
+    const safeRemote = Array.isArray(remoteList) ? remoteList : [];
+    const safeLocal = Array.isArray(localList) ? localList : [];
+    for (const w of safeRemote) {
+      if (w && w.userId) map.set(w.userId, w);
+    }
+    for (const localW of safeLocal) {
+      if (!localW || !localW.userId) continue;
+      const remoteW = map.get(localW.userId);
+      if (!remoteW) {
+        map.set(localW.userId, localW);
+      } else {
+        const localTime = new Date(localW.updatedAt || 0).getTime();
+        const remoteTime = new Date(remoteW.updatedAt || 0).getTime();
+        if (localTime >= remoteTime) {
+          map.set(localW.userId, { ...remoteW, ...localW });
+        } else {
+          map.set(localW.userId, { ...localW, ...remoteW });
+        }
+      }
+    }
+    return Array.from(map.values());
+  };
+  const mergeFingerprints = (localList = [], remoteList = []) => {
+    const map = /* @__PURE__ */ new Map();
+    const safeRemote = Array.isArray(remoteList) ? remoteList : [];
+    const safeLocal = Array.isArray(localList) ? localList : [];
+    for (const df of safeRemote) {
+      if (df && df.deviceFingerprint) map.set(df.deviceFingerprint, df);
+    }
+    for (const localDf of safeLocal) {
+      if (!localDf || !localDf.deviceFingerprint) continue;
+      const remoteDf = map.get(localDf.deviceFingerprint);
+      if (!remoteDf) {
+        map.set(localDf.deviceFingerprint, localDf);
+      } else {
+        const combined = Array.from(
+          /* @__PURE__ */ new Set([...remoteDf.associatedUserIds || [], ...localDf.associatedUserIds || []])
+        );
+        map.set(localDf.deviceFingerprint, {
+          ...remoteDf,
+          ...localDf,
+          associatedUserIds: combined,
+          trialWithdrawalCompleted: remoteDf.trialWithdrawalCompleted || localDf.trialWithdrawalCompleted
+        });
+      }
+    }
+    return Array.from(map.values());
+  };
+  return {
+    ...local,
+    ...remote,
+    users: mergeById(local.users, remote.users),
+    wallets: mergeWallets(local.wallets, remote.wallets),
+    deposits: mergeById(local.deposits, remote.deposits),
+    withdraws: mergeById(local.withdraws, remote.withdraws || remote.withdrawals),
+    taskHistories: mergeById(local.taskHistories, remote.taskHistories),
+    walletTransactions: mergeById(local.walletTransactions, remote.walletTransactions),
+    transactions: mergeById(local.transactions, remote.transactions),
+    notifications: mergeById(local.notifications, remote.notifications),
+    referralCommissions: mergeById(local.referralCommissions, remote.referralCommissions),
+    deviceFingerprints: mergeFingerprints(local.deviceFingerprints, remote.deviceFingerprints),
+    supportTickets: mergeById(local.supportTickets, remote.supportTickets),
+    smsTransactions: mergeById(local.smsTransactions, remote.smsTransactions),
+    verifyDevices: mergeById(local.verifyDevices, remote.verifyDevices),
+    adminUsers: mergeById(local.adminUsers, remote.adminUsers),
+    auditLogs: mergeById(local.auditLogs, remote.auditLogs),
+    fraudLogs: mergeById(local.fraudLogs, remote.fraudLogs),
+    verificationLogs: mergeById(local.verificationLogs, remote.verificationLogs),
+    apkVersions: mergeById(local.apkVersions, remote.apkVersions),
+    packages: Array.isArray(remote.packages) && remote.packages.length > 0 ? remote.packages : local.packages,
+    withdrawCards: Array.isArray(remote.withdrawCards) && remote.withdrawCards.length > 0 ? remote.withdrawCards : local.withdrawCards,
+    paymentNumbers: Array.isArray(remote.paymentNumbers) && remote.paymentNumbers.length > 0 ? remote.paymentNumbers : local.paymentNumbers,
+    settings: { ...local.settings, ...remote.settings || {} },
+    mfsSettings: { ...local.mfsSettings, ...remote.mfsSettings || {} },
+    cloudinarySettings: { ...local.cloudinarySettings, ...remote.cloudinarySettings || {} },
+    videoTasks: Array.isArray(remote.videoTasks) && remote.videoTasks.length > 0 ? remote.videoTasks : local.videoTasks
+  };
+}
 async function flushStoreToMongo() {
   if (!isStoreDirty && !pendingSyncPromise) {
     return true;
   }
-  isStoreDirty = false;
   pendingSyncPromise = syncStoreToMongo(store);
   try {
     const res = await pendingSyncPromise;
+    if (res) {
+      isStoreDirty = false;
+    }
     return res;
+  } catch (err) {
+    console.warn("[Database] Pending sync flush error:", err?.message || err);
+    return false;
   } finally {
     pendingSyncPromise = null;
   }
@@ -1182,8 +1406,13 @@ async function saveStoreAsync() {
   } catch (e) {
   }
   isStoreHydratedFromMongo = true;
-  isStoreDirty = false;
-  return await syncStoreToMongo(store);
+  const syncSuccess = await syncStoreToMongo(store);
+  if (syncSuccess) {
+    isStoreDirty = false;
+  } else {
+    isStoreDirty = true;
+  }
+  return syncSuccess;
 }
 function saveStore() {
   try {
@@ -1197,21 +1426,23 @@ function saveStore() {
   isStoreHydratedFromMongo = true;
   isStoreDirty = true;
   pendingSyncPromise = syncStoreToMongo(store);
-  pendingSyncPromise.catch((e) => {
+  pendingSyncPromise.then((success) => {
+    if (success) isStoreDirty = false;
+  }).catch((e) => {
     console.warn("[Database] Sync to MongoDB Atlas error:", e?.message);
   });
 }
 async function reloadStoreFromMongoIfStale(force = false) {
   const now = Date.now();
-  if (isStoreDirty) return;
+  if (isStoreDirty) {
+    flushStoreToMongo().catch(() => {
+    });
+  }
   if (!force && now - lastHydrationTimestamp < 1500) return;
   try {
     const mongoResult = await loadStoreFromMongo();
     if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
-      store = {
-        ...store,
-        ...mongoResult.data
-      };
+      store = mergeStoreState(store, mongoResult.data);
       if (Array.isArray(store.videoTasks)) {
         let tasksModified = false;
         store.videoTasks.forEach((vt, idx) => {
@@ -1239,10 +1470,7 @@ async function initMongoSync() {
     try {
       const mongoResult = await loadStoreFromMongo();
       if (mongoResult && mongoResult.data && Array.isArray(mongoResult.data.users)) {
-        store = {
-          ...store,
-          ...mongoResult.data
-        };
+        store = mergeStoreState(store, mongoResult.data);
         if (Array.isArray(store.videoTasks)) {
           let tasksModified = false;
           store.videoTasks.forEach((vt, idx) => {
@@ -1271,6 +1499,8 @@ async function initMongoSync() {
       }
     } catch (err) {
       console.warn("[Database] Error initializing MongoDB state sync:", err?.message);
+    } finally {
+      mongoHydrationPromise = null;
     }
   })();
   return mongoHydrationPromise;
@@ -2105,7 +2335,7 @@ async function authenticateUser(req, res, next) {
     if (decoded.isAdmin) {
       let adminRec = (store2.adminUsers || []).find((a) => a.id === decoded.id || a.phone === decoded.phone);
       if (!adminRec) {
-        await initMongoSync().catch(() => {
+        await reloadStoreFromMongoIfStale(true).catch(() => {
         });
         store2 = getStore();
         adminRec = (store2.adminUsers || []).find((a) => a.id === decoded.id || a.phone === decoded.phone);
@@ -2119,7 +2349,7 @@ async function authenticateUser(req, res, next) {
     }
     let dbUser = store2.users.find((u) => u.id === decoded.id || decoded.phone && u.phone === decoded.phone);
     if (!dbUser) {
-      await initMongoSync().catch(() => {
+      await reloadStoreFromMongoIfStale(true).catch(() => {
       });
       store2 = getStore();
       dbUser = store2.users.find((u) => u.id === decoded.id || decoded.phone && u.phone === decoded.phone);
@@ -2203,8 +2433,14 @@ router.post("/auth/register", authRateLimiter, async (req, res) => {
     return res.status(400).json({ error: "\u09AA\u09BE\u09B8\u0993\u09AF\u09BC\u09BE\u09B0\u09CD\u09A1 \u0995\u09AE\u09AA\u0995\u09CD\u09B7\u09C7 \u09EC \u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7\u0964" });
   }
   const normalizedPhone = normalizeBdPhone(phone);
-  const store2 = getStore();
-  const existingUser = store2.users.find((u) => u.phone === normalizedPhone);
+  let store2 = getStore();
+  let existingUser = store2.users.find((u) => u.phone === normalizedPhone);
+  if (!existingUser) {
+    await reloadStoreFromMongoIfStale(true).catch(() => {
+    });
+    store2 = getStore();
+    existingUser = store2.users.find((u) => u.phone === normalizedPhone);
+  }
   if (existingUser) {
     return res.status(400).json({ error: "\u098F\u0987 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0\u099F\u09BF \u09A6\u09BF\u09AF\u09BC\u09C7 \u0987\u09A4\u09BF\u09AE\u09A7\u09CD\u09AF\u09C7 \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F \u0996\u09CB\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964" });
   }
@@ -2220,9 +2456,17 @@ router.post("/auth/register", authRateLimiter, async (req, res) => {
     store2.settings?.defaultReferralCode
   ].filter(Boolean).map((c) => c.toUpperCase());
   const isOfficialCode = officialCodes.includes(cleanRefCode);
-  const uplineUser = store2.users.find(
+  let uplineUser = store2.users.find(
     (u) => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
   );
+  if (!uplineUser && !isOfficialCode) {
+    await reloadStoreFromMongoIfStale(true).catch(() => {
+    });
+    store2 = getStore();
+    uplineUser = store2.users.find(
+      (u) => u.referralCode && u.referralCode.toUpperCase() === cleanRefCode
+    );
+  }
   if (!uplineUser && !isOfficialCode) {
     return res.status(400).json({
       error: "\u09AD\u09C1\u09DF\u09BE \u09AC\u09BE \u0985\u09B8\u09CD\u09A4\u09BF\u09A4\u09CD\u09AC\u09B9\u09C0\u09A8 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1! \u09B6\u09C1\u09A7\u09C1\u09AE\u09BE\u09A4\u09CD\u09B0 \u09A1\u09BE\u099F\u09BE\u09AC\u09C7\u09B8\u09C7\u09B0 \u09AC\u09C8\u09A7 \u0993 \u09B8\u0995\u09CD\u09B0\u09BF\u09DF \u0987\u0989\u099C\u09BE\u09B0\u09C7\u09B0 \u09B0\u09C7\u09AB\u09BE\u09B0 \u0995\u09CB\u09A1 \u0997\u09CD\u09B0\u09B9\u09A3\u09AF\u09CB\u0997\u09CD\u09AF\u0964"
@@ -2328,7 +2572,7 @@ router.post("/auth/login", authRateLimiter, async (req, res) => {
     (a) => a.phone === normalizedPhone || a.phone === phone.trim() || a.username && a.username.toLowerCase() === trimmedPhone
   );
   if (!admin) {
-    await initMongoSync().catch(() => {
+    await reloadStoreFromMongoIfStale(true).catch(() => {
     });
     store2 = getStore();
     admin = store2.adminUsers.find(
@@ -2350,7 +2594,7 @@ router.post("/auth/login", authRateLimiter, async (req, res) => {
   }
   let user = store2.users.find((u) => u.phone === normalizedPhone);
   if (!user) {
-    await initMongoSync().catch(() => {
+    await reloadStoreFromMongoIfStale(true).catch(() => {
     });
     store2 = getStore();
     user = store2.users.find((u) => u.phone === normalizedPhone);
@@ -2478,7 +2722,7 @@ router.get("/tasks/today", authenticateUser, async (req, res) => {
   let store2 = getStore();
   let user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
   if (!user) {
-    await initMongoSync().catch(() => {
+    await reloadStoreFromMongoIfStale(true).catch(() => {
     });
     store2 = getStore();
     user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
@@ -2551,7 +2795,7 @@ router.post("/tasks/complete", financialRateLimiter, authenticateUser, async (re
     const targetUserId = user ? user.id : "";
     let wallet = targetUserId ? store2.wallets.find((w) => w.userId === targetUserId) : null;
     if (!user || !wallet) {
-      await initMongoSync().catch(() => {
+      await reloadStoreFromMongoIfStale(true).catch(() => {
       });
       store2 = getStore();
       user = store2.users.find((u) => u.id === tokenUser.id || tokenUser.phone && u.phone === tokenUser.phone);
@@ -6001,7 +6245,11 @@ app.use(async (req, res, next) => {
   try {
     const connected = await connectMongoDB();
     if (connected) {
-      await reloadStoreFromMongoIfStale(req.method !== "GET");
+      if (!isStoreHydrated()) {
+        await initMongoSync();
+      } else {
+        await reloadStoreFromMongoIfStale(req.method !== "GET");
+      }
     }
   } catch (e) {
   }
@@ -6043,6 +6291,7 @@ app.use(cookieParser());
 var healthHandler = (req, res) => {
   res.json({
     status: "ok",
+    database: isMongoConnected() ? "connected" : "offline_or_connecting",
     service: "EarnNetwork BD (earnnetworkbd.com)",
     version: "v20.0.0-enterprise",
     time: (/* @__PURE__ */ new Date()).toISOString()

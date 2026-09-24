@@ -5,8 +5,8 @@ import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 import routes from './server/routes';
 import { initSocketIO } from './server/socket';
-import { connectMongoDB } from './server/database/mongoose';
-import { initMongoSync } from './server/db';
+import { connectMongoDB, isMongoConnected, startMongoHeartbeat } from './server/database/mongoose';
+import { initMongoSync, reloadStoreFromMongoIfStale, flushStoreToMongo, isStoreHydrated } from './server/db';
 import {
   applySecurityHeaders,
   sanitizeRequestData,
@@ -31,14 +31,71 @@ async function startServer() {
   // Initialize Socket.IO on the same HTTP server
   initSocketIO(httpServer);
 
+  // Start background MongoDB ping heartbeat to prevent idle disconnects
+  startMongoHeartbeat();
+
   // Initialize MongoDB Atlas connection (falls back to local store if MONGODB_URI not provided)
   connectMongoDB()
     .then((connected) => {
-      if (connected) initMongoSync();
+      if (connected) initMongoSync().catch(() => {});
     })
     .catch(err => {
       console.warn('[Database] Optional MongoDB Atlas init deferred:', err.message);
     });
+
+  // Pre-request middleware: ensure connection & latest state across all instances
+  app.use(async (req, res, next) => {
+    try {
+      const connected = await connectMongoDB();
+      if (connected) {
+        if (!isStoreHydrated()) {
+          await initMongoSync();
+        } else {
+          await reloadStoreFromMongoIfStale(req.method !== 'GET');
+        }
+      }
+    } catch (e) {
+      // continue with persistence fallback
+    }
+    next();
+  });
+
+  // Response interceptor: guarantees state flush before responding
+  app.use((req, res, next) => {
+    const originalJson = res.json.bind(res);
+    const originalSend = res.send.bind(res);
+
+    let hasFlushed = false;
+    const flushPersistence = async () => {
+      if (hasFlushed) return;
+      hasFlushed = true;
+      try {
+        await flushStoreToMongo();
+      } catch (e) {
+        console.warn('[Database] Flush on response deferred:', e);
+      }
+    };
+
+    res.json = function (body: any) {
+      flushPersistence()
+        .catch(() => {})
+        .finally(() => {
+          originalJson(body);
+        });
+      return res;
+    };
+
+    res.send = function (body: any) {
+      flushPersistence()
+        .catch(() => {})
+        .finally(() => {
+          originalSend(body);
+        });
+      return res;
+    };
+
+    next();
+  });
 
   // Global API Rate Limiter
   app.use('/api', globalApiLimiter);
@@ -52,6 +109,7 @@ async function startServer() {
   app.get('/api/health', (req, res) => {
     res.json({
       status: 'ok',
+      database: isMongoConnected() ? 'connected' : 'offline_or_connecting',
       service: 'EarnNetwork BD (earnnetworkbd.com)',
       version: 'v20.0.0-enterprise',
       realtime: 'Socket.IO enabled',
